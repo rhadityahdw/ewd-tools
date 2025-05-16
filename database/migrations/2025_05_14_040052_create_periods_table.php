@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('periods', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-            $table->enum('status', ['open', 'closed'])->default('open');
+            $table->enum('status', ['draft', 'active', 'ended', 'expired'])->default('draft');
             $table->timestamps();
         });
     }

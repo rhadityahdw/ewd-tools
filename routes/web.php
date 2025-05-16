@@ -27,10 +27,11 @@ Route::resource('aspects', AspectController::class);
 Route::resource('templates', TemplateController::class);
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/periods', [PeriodController::class, 'index'])->name('periods.index');
-    Route::post('/periods/open', [PeriodController::class, 'open'])->name('periods.open');
-    Route::patch('/periods/{period}/close', [PeriodController::class, 'close'])->name('periods.close');
-    Route::get('/periods/elapsed-time', [PeriodController::class, 'getElapsedTime'])->name('periods.elapsed-time');
+    Route::resource('periods', PeriodController::class);
+
+    Route::post('periods/{period}/start', [PeriodController::class, 'start'])->name('periods.start');
+    Route::post('periods/{period}/end', [PeriodController::class,'stop'])->name('periods.stop');
+    Route::post('periods/{period}/extend',[PeriodController::class,'extend'])->name('periods.extend');
 });
 
 require __DIR__.'/form.php';

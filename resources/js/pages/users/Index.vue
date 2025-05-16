@@ -29,6 +29,10 @@ const getRoleBadgeClass = (roleName: string) => {
         default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
 };
+
+const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 </script>
 
 <template>
