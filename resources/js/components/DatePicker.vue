@@ -11,15 +11,27 @@ import {
   parseDate,
 } from '@internationalized/date'
 import { CalendarIcon } from 'lucide-vue-next'
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps<{
-  modelValue: DateValue;
+  modelValue?: DateValue | string | undefined;
+  placeholder?: string;
 }>();
 
-const parsedDate = parseDate(props.modelValue.toString())
+const parsedDate = computed(() => {
+  if (!props.modelValue) return null;
 
-console.log(parsedDate)
+  try {
+    if (typeof props.modelValue === 'string') {
+      return parseDate(props.modelValue)
+    } else {
+      return props.modelValue
+    }
+  } catch (error) {
+    console.error('Invalid date format:', props.modelValue);
+    return null;
+  }
+})
 
 const emit = defineEmits<{
   (e: 'update:modelValue', date: string): void
@@ -29,11 +41,9 @@ const df = new DateFormatter('en-US', {
   dateStyle: 'long',
 })
 
-const value = ref<DateValue>(parsedDate)
+const value = ref<DateValue | null>(parsedDate.value)
 
-console.log(typeof value.value)
-
-watch(() => parsedDate, (newVal) => {
+watch(() => parsedDate.value, (newVal) => {
   value.value = newVal
 })
 

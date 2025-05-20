@@ -31,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('periods/{period}/start', [PeriodController::class, 'start'])->name('periods.start');
     Route::post('periods/{period}/end', [PeriodController::class,'stop'])->name('periods.stop');
+    Route::post('periods/check-expired', [PeriodController::class, 'checkExpiredPeriods'])->name('periods.check-expired');
     Route::post('periods/{period}/extend',[PeriodController::class,'extend'])->name('periods.extend');
 });
 

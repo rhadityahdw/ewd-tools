@@ -19,6 +19,7 @@ const periodToDelete = ref<number | null>(null);
 const currentTime = ref(new Date());
 const timerInterval = ref<number | null>(null);
 const isStatusUpdateLoading = ref(false);
+const isCheckingExpiredPeriods = ref(false);
 
 
 /**

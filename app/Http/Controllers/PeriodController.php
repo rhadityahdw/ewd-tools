@@ -134,6 +134,22 @@ class PeriodController extends Controller
         return redirect()->route('periods.index')->with('success', 'Period ended successfully.');
     }
 
+
+    /**
+     * 
+     * 
+     * Automatically change the status of period to expired if the end date is before today.
+     */
+    public function checkExpiredPeriods(Period $period)
+    {
+        $periods = Period::where('status', 'active')->get();
+        foreach ($periods as $period) {
+            if ($period->end_date < now()) {
+                $period->markAsExpired();
+            }
+        }
+    }
+    
     /**
      * POST /periods/{period}/extend
      * 

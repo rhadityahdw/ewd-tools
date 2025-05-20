@@ -5,16 +5,6 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Head, Link } from '@inertiajs/vue3';
 import { BreadcrumbItem, Aspect, Question } from '@/types';
 import { ArrowLeft, Edit } from 'lucide-vue-next';
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-// import { Badge } from '@/components/ui/badge';
 
 const props = defineProps<{
     aspect: Aspect & { questions: Question[] },

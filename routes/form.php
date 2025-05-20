@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::prefix('forms')->group(function () {
+    Route::get('form', function () {
+        return Inertia::render('Form');
+    })->name('forms.form');
+
     Route::get('info', function () {
 
         $borrowers = Borrower::all();

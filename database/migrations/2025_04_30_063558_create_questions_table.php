@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('aspect_id')->constrained('aspects')->cascadeOnDelete();
             $table->text('question_text');
             $table->decimal('weight', 5, 2)->default(0.00);
-            $table->decimal('true_score', 5, 2)->default(1.00);
-            $table->decimal('false_score', 5, 2)->default(0.00);
+            $table->decimal('max_score', 5, 2)->default(1.00);
+            $table->decimal('min_score', 5, 2)->default(0.00);
             $table->boolean('is_mandatory')->default(false);
             $table->timestamps();
         });

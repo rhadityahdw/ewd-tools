@@ -77,7 +77,7 @@ class Period extends Model
     public function markAsEnded(): void
     {
         $this->status = self::STATUS_ENDED;
-        $this->start_date = now();
+        $this->end_date = now();
         $this->save();
     }
 
