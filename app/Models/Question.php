@@ -6,7 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Question extends Model
 {
-    protected $fillable = ['question_text', 'weight', 'is_mandatory', 'true_score', 'false_score'];
+    protected $fillable = [
+        'question_text', 
+        'weight', 
+        'max_score', 
+        'min_score',
+        'is_mandatory', 
+    ];
 
     public function aspect()
     {

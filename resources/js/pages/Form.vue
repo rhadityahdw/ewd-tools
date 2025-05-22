@@ -89,9 +89,7 @@ const activeComponent = computed(() => {
             </Stepper>
 
             <!-- Form Container -->
-            <Card>
-                <CardContent>
-                    <div v-if="activeComponent === 'information'">
+            <div v-if="activeComponent === 'information'">
                         <InformationForm
                             :initial-data="formStore.information"    
                         />
@@ -106,8 +104,6 @@ const activeComponent = computed(() => {
                             :initial-data="formStore.aspects"
                         />
                     </div>
-                </CardContent>
-            </Card>
         </div>
     </div>
 </template>

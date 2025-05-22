@@ -214,16 +214,8 @@ const form = useForm({
     <Head title="Fasilitas Debitur" />
 
     <div class="min-h-screen">
-        <!-- Header -->
-        <div class="bg-[#2E3192] dark:bg-[#1A1D6B] text-white dark:text-gray-200 p-4 shadow-md">
-            <h1 class="pl-2 text-2xl font-bold text-white dark:text-white">Fasilitas Debitur</h1>
-        </div>
-
         <!-- Form -->
-        <div class="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-            <Card>
-                <CardContent class="p-4 sm:p-6">
-                    <form>
+        <form>
                         <div class="overflow-x-auto -mx-4 sm:-mx-6">
                             <div class="inline-block min-w-full align-middle">
                                 <Table class="min-w-full border border-gray-200">
@@ -351,9 +343,6 @@ const form = useForm({
                             </Button>
                         </div>
                     </form>
-                </CardContent>
-            </Card>
-        </div>
     </div>
 </template>
 

@@ -132,11 +132,6 @@ const closeReport = () => {
     <Head title="Input Aspek" />
 
     <div class="min-h-screen">
-        <!-- Header -->
-        <div class="bg-[#2E3192] p-4 text-white shadow-md dark:bg-[#1A1D68] dark:text-gray-200">
-            <h1 class="pl-2 text-2xl font-bold">Penilaian Aspek</h1>
-        </div>
-
         <!-- Form -->
         <div class="container mx-auto px-4 py-8">
             <Card>

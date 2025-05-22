@@ -73,11 +73,6 @@ const businessTypes = ref([
 
 <template>
     <div class="min-h-screen">
-        <!-- Header -->
-        <div class="bg-[#2E3192] dark:bg-[#1A1D6B] text-white dark:text-gray-200 p-4 shadow-md">
-            <h1 class="pl-2 text-2xl font-bold text-white dark:text-white">Informasi Debitur</h1>
-        </div>
-
         <!-- Form -->
         <div class="container mx-auto max-w-6xl py-8 px-4">
             <Card>

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('template_id')->constrained('templates')->cascadeOnDelete();
             $table->foreignId('aspect_id')->constrained('aspects')->cascadeOnDelete();
-            $table->decimal('weight', 3, 2)->default(0.00); 
+            $table->decimal('weight', 5, 2)->default(0.00); 
             $table->timestamps();
 
             $table->unique(['template_id', 'aspect_id']);

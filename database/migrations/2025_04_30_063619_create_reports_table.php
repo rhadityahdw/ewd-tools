@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('template_id')->nullable()->constrained('templates')->nullOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('borrower_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

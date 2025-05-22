@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('question_options', function (Blueprint $table) {
+        Schema::create('question_conditions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
-            $table->text('option_text');
-            $table->decimal('score', 5, 2)->default(0.00);
+            $table->enum('entity', ['borrower', 'borrower_detail', 'question']);
+            $table->string('field');
+            $table->enum('operator', ['=', '!=', '>', '<', '>=', '<=', 'in', 'not in', 'contains', 'not contains']);
+            $table->text('value');
+            $table->enum('logic_operator', ['AND', 'OR'])->default('AND');
             $table->timestamps();
         });
     }
@@ -25,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('question_options');
+        Schema::dropIfExists('question_conditions');
     }
 };
