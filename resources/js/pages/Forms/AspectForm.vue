@@ -131,7 +131,6 @@ const closeReport = () => {
 <template>
     <Head title="Input Aspek" />
 
-    <div class="min-h-screen">
         <!-- Form -->
         <div class="container mx-auto px-4 py-8">
             <Card>
@@ -269,7 +268,6 @@ const closeReport = () => {
                 </div>
             </div>
         </div>
-    </div>
 </template>
 
 <style scoped>

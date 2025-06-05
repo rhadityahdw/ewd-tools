@@ -6,6 +6,10 @@ use App\Models\Borrower;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('form', function () {
+    return Inertia::render('Forms/Index');
+})->name('forms.index');
+
 Route::prefix('forms')->group(function () {
     Route::get('form', function () {
         return Inertia::render('Form');
@@ -23,7 +27,7 @@ Route::prefix('forms')->group(function () {
     Route::post('info', [BorrowerDetailController::class, 'store']);
     
     Route::get('facility', function () {
-        return Inertia::render('FacilityForm', [
+        return Inertia::render('Forms/FacilityForm', [
             'borrower_id' => session('borrower_id'),
         ]);
     })->name('forms.facility');
@@ -31,6 +35,6 @@ Route::prefix('forms')->group(function () {
     Route::post('facility', [BorrowerFacilityController::class,'store']);
     
     Route::get('aspect', function () {
-        return Inertia::render('AspectForm');
+        return Inertia::render('Forms/AspectForm');
     })->name('forms.aspect');
 });

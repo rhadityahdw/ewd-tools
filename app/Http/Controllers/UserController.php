@@ -7,6 +7,7 @@ use App\Models\Role;
 use App\Models\Division;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 
@@ -18,7 +19,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::with('role', 'division')->get();
+        $users = User::with(['roles', 'division'])->get();
         
         return Inertia::render('users/Index', [
             'users' => $users
@@ -48,15 +49,21 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => ['required', Rule::exists('roles', 'id')],
+            'division_id' => ['nullable', Rule::exists('divisions', 'id')],
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
+            'division_id' => $request->division_id,
         ]);
+
+        $role = Role::findById($request->role_id);
+        if ($role) {
+            $user->assignRole($role->name); // Assign the role by its name
+        }
 
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
@@ -67,7 +74,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         return Inertia::render('users/Show', [
-            'user' => $user->load(['role', 'division'])
+            'user' => $user->load(['roles', 'division'])
         ]);
     }
 

@@ -71,7 +71,7 @@ const footerNavItems: NavItem[] = [
 
         <SidebarContent>
             <div class="px-2 py-1">
-                <Link :href="route('forms.borrower')" class="w-full">
+                <Link :href="route('forms.index')" class="w-full">
                     <button class="flex items-center justify-center w-full gap-2 px-4 py-2 text-sm font-medium text-white dark:text-black transition-colors bg-primary rounded-md hover:bg-primary/90">
                         <PlusCircle class="w-4 h-4" />
                         <span>Tambah Report Baru</span>

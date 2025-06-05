@@ -1,124 +1,114 @@
-import { defineStore } from 'pinia';
+import { now } from "@vueuse/core";
+import { defineStore } from "pinia";
+
+interface InformationState {
+    borrowerId: number | null;
+    borrowerGroup: string;
+    purpose: 'both' | 'kie' | 'kmke';
+    economicSector: string;
+    businessField: string;
+    borrowerBusiness: string;
+    collectibility: number;
+    restructuring: boolean;
+}
+
+interface FacilityState {
+    id: number | null;
+    name: string;
+    limit: number;
+    outstanding: number;
+    interestRate: number;
+    principalArrears: number;
+    interestArrears: number;
+    pdo: number;
+    maturityDate: Date;
+}
+
+interface AspectState {
+    questionId: number;
+    questionText: number;
+    aspectName: string;
+    aspectCode: string;
+    options: {
+        id: number,
+        option_text: string,
+        score: number;
+    }[];
+    selectedOptionId: number | null;
+    notes: string | null;
+    isMandatory: boolean;
+    maxScore: number;
+    minScore: number;
+    weight: number;
+}
+
+interface ReportMetaData {
+    template_id: number | null;
+    period_id: number | null;
+    created_by: number | null;
+}
+
+interface FormState {
+    activeStep: number;
+    totalSteps: number;
+    informationBorrower: InformationState;
+    facilitiesBorrower: FacilityState[]; // Menyimpan tiap ROW pada form fasilitas
+    aspectsBorrower: AspectState[]; // Menyimpan tiap PERTANYAAN pada form aspek
+    reportMeta: ReportMetaData;
+    existingBorrowerId: number | null;
+    existingBorrowerName: string;
+}
+
+const initialInformationBorrower = (): InformationState => ({
+    borrowerId: null,
+    borrowerGroup: '',
+    purpose: 'kie',
+    economicSector: '',
+    businessField: '',
+    borrowerBusiness: '',
+    collectibility: 1,
+    restructuring: false, 
+});
+
+const initialFacilitiesBorrower = (): FacilityState => ({
+    id: null,
+    name: '',
+    limit: 0,
+    outstanding: 0,
+    interestRate: 0,
+    principalArrears: 0,
+    interestArrears: 0,
+    pdo: 0,
+    maturityDate: new Date(),
+});
+
+const initialReportMeta = (): ReportMetaData => ({
+    template_id: null,
+    period_id: null,
+    created_by: null,
+});
 
 export const useFormStore = defineStore('form', {
-  state: () => ({
-    activeStep: 0,
-    information: {
-      borrower_id: '',
-      borrower_group: '',
-      purpose: 'both',
-      economic_sector: '',
-      business_field: '',
-      borrower_business: '',
-      collectibility: 0,
-      restructuring: false,
-    },
-    aspects: [],
-    facilities: {
-      kieRows: [{ 
-        name: 'KIE 1', 
-        limit: 0, 
-        outstanding: 0, 
-        interestRate: 0, 
-        principalArrears: 0, 
-        interestArrears: 0, 
-        pdo: 0, 
-        dueDate: 0,
-      }],
-      kmkeRows: [{ 
-        name: 'KMKE 1', 
-        limit: 0, 
-        outstanding: 0, 
-        interestRate: 0, 
-        principalArrears: 0, 
-        interestArrears: 0, 
-        pdo: 0, 
-        dueDate: 0,
-      }]
+    state: (): FormState => ({
+        activeStep: 1,
+        totalSteps: 3,
+        informationBorrower: initialInformationBorrower(),
+        facilitiesBorrower: [initialFacilitiesBorrower()],
+        aspectsBorrower: [],
+        reportMeta: initialReportMeta(),
+        existingBorrowerId: null,
+        existingBorrowerName: '',
+    }),
+    actions: {
+        nextStep() {
+            if (this.activeStep < this.totalSteps) {
+                this.activeStep++
+            }
+        },
+        prevStep() {
+            if (this.activeStep > 1) {
+                this.activeStep--;
+            }
+        }
     }
-  }),
-  
-  getters: {
-    completedSteps: (state) => {
-      let completed = -1;
-      
-      if (Object.values(state.information).some(val => val)) {
-        completed = 0;
-      }
-      
-      if (state.aspects.length > 0) {
-        completed = 1;
-      }
-      
-      if (state.facilities.kieRows.length > 0 || state.facilities.kmkeRows.length > 0) {
-        completed = 2;
-      }
-      
-      return completed;
-    },
-    
-    canAccessStep: (state) => (step: number) => {
-      // Hanya bisa maju satu langkah atau kembali ke langkah sebelumnya
-      return step <= state.completedSteps + 1 && step >= 0;
-    }
-  },
-  
-  actions: {
-    setActiveStep(step: number) {
-      if (this.canAccessStep(step)) {
-        this.activeStep = step;
-      }
-    },
-    
-    saveInformationData(data: any) {
-      this.information = data;
-      this.setActiveStep(1);
-    },
-    
-    saveAspectData(data: any) {
-      this.aspects = data;
-      this.setActiveStep(2);
-    },
-    
-    saveFacilityData(data: any) {
-      this.facilities = data;
-    },
-    
-    resetForm() {
-      this.activeStep = 0;
-      this.information = {
-        borrower_id: '',
-        borrower_group: '',
-        purpose: 'both',
-        economic_sector: '',
-        business_field: '',
-        borrower_business: '',
-        collectibility: 0,
-        restructuring: false,
-      };
-      this.aspects = [];
-      this.facilities = {
-        kieRows: [{ 
-          name: 'KIE 1', 
-          limit: 0, 
-          outstanding: 0, 
-          interestRate: 0, 
-          principalArrears: 0, 
-          interestArrears: 0, 
-          pdo: 0, 
-          dueDate: 0,
-        }],
-        kmkeRows: [{ 
-          name: 'KMKE 1', 
-          limit: 0, 
-          outstanding: 0, 
-          interestRate: 0, 
-          principalArrears: 0, 
-          interestArrears: 0, 
-          pdo: 0, 
-          dueDate: 0,
-        }]
-      };
-    }
-  }
-});
+})

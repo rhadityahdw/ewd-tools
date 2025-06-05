@@ -43,7 +43,7 @@ export interface User {
     email: string;
     password: string;
     role_id: number;
-    role: Role;
+    role: Role[];
     division_id?: number;
     division?: Division;
     created_at?: string;

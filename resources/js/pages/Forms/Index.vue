@@ -1,0 +1,118 @@
+<script setup lang="ts">
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Stepper, StepperItem, StepperSeparator, StepperTitle, StepperTrigger } from '@/components/ui/stepper';
+import { useFormStore } from '@/stores/formStore';
+import { Calculator, IdCard, ListCheck } from 'lucide-vue-next';
+import InformationForm from '@/pages/Forms/InformationForm.vue';
+import FacilityForm from '@/pages/Forms/FacilityForm.vue';
+import AspectForm from '@/pages/Forms/AspectForm.vue';
+import { computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
+
+const formState = useFormStore();
+
+const steps = [
+    {
+        id: 1,
+        title: 'Informasi Debitur',
+        component: InformationForm,
+        icon: IdCard,
+        required: true,
+    },
+    {
+        id: 2,
+        title: 'Fasilitas Debitur',
+        component: FacilityForm,
+        icon: Calculator,
+        required: true,
+    },
+    {
+        id: 3,
+        title: 'Aspek Debitur',
+        component: AspectForm,
+        icon: ListCheck,
+        required: true,
+    },
+];
+
+const currentComponent = computed(() => steps[formState.activeStep - 1].component); // Indexing
+</script>
+
+<template>
+    <div class="min-h-screen">
+        <!-- Header -->
+        <div class="bg-[#2E3192] p-4 text-white shadow-md dark:bg-[#1A1D68] dark:text-gray-200">
+            <Label class="pl-2 text-2xl font-bold">Form Penilaian Debitur</Label>
+        </div>
+
+        <div class="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <!-- Stepper -->
+            <Stepper class="mx-auto flex w-full max-w-4xl items-start gap-4">
+                <StepperItem v-for="step in steps" :key="step.id" :step="step.id" class="relative flex w-full flex-col items-center justify-center">
+                    <StepperSeparator
+                        v-if="step.id < steps.length"
+                        class="absolute top-5 right-[calc(-50%+16px)] left-[calc(50%+24px)] mx-1 h-1 rounded-full transition-all duration-300"
+                        :class="{
+                            'bg-[#2E3192]': step.id < formState.activeStep,
+                            'bg-gray-300': step.id >= formState.activeStep,
+                        }"
+                    />
+
+                    <StepperTrigger as-child>
+                        <div
+                            class="z-10 h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-300"
+                            :class="{
+                                'bg-[#1A1D68] text-white shadow-lg dark:text-gray-200': formState.activeStep === step.id,
+                                'border-gray-300 bg-transparent text-gray-500': formState.activeStep < step.id,
+                                'bg-[#2E3192] text-white dark:text-gray-200': formState.activeStep > step.id,
+                            }"
+                        >
+                            <component :is="step.icon" class="h-5 w-5" />
+                        </div>
+                    </StepperTrigger>
+
+                    <div class="flex flex-col items-center text-center">
+                        <StepperTitle
+                            :class="{
+                                'text-[#1A1D68]': formState.activeStep === step.id,
+                                'text-gray-500': formState.activeStep !== step.id,
+                            }"
+                            class="text-sm font-medium"
+                        >
+                            {{ step.title }}
+                        </StepperTitle>
+                    </div>
+                </StepperItem>
+            </Stepper>
+
+            <!-- Component -->
+            <component :is="currentComponent" @next="formState.nextStep" @prev="formState.prevStep" class="container mx-auto mb-4 sm:mb-6" />
+
+            <div class="mx-auto flex max-w-4xl flex-col justify-end gap-4 sm:flex-row lg:max-w-6xl lg:gap-6 lg:px-8">
+                <Link v-if="formState.activeStep === 1" :href="route('dashboard')">
+                    <Button class="w-full min-w-24 bg-red-600 hover:bg-red-700 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3">Cancel</Button>
+                </Link>
+
+                <Button
+                    v-if="formState.activeStep > 1"
+                    @click="formState.prevStep"
+                    variant="outline"
+                    class="w-full min-w-24 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3"
+                    >Back</Button
+                >
+
+                <Button
+                    v-if="formState.activeStep < formState.totalSteps"
+                    @click="formState.nextStep"
+                    class="w-full min-w-24 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3"
+                    >Next</Button
+                >
+
+                <Button v-if="formState.activeStep === formState.totalSteps" @click="" class="w-full min-w-24 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3"
+                    >Submit</Button
+                >
+            </div>
+        </div>
+    </div>
+</template>

@@ -6,9 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table/index';
 import type { BreadcrumbItem, User } from '@/types';
 
-defineProps<{
-    users: User[];
+const props = defineProps<{
+    users: Array<{
+        id: number;
+        name: string;
+        email: string;
+        roles: Array<{
+            name: string;
+        }>;
+        division: {
+            code: string;
+        };
+    }>;
 }>();
+
+console.log(props.users)
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -67,8 +79,8 @@ const capitalizeFirstLetter = (string: string) => {
                                     <TableCell>{{ user.name }}</TableCell>
                                     <TableCell>{{ user.email }}</TableCell>
                                     <TableCell>
-                                        <span :class="['px-2 py-1 text-xs font-medium rounded-full', getRoleBadgeClass(user.role.name)]">
-                                            {{ user.role?.name.toUpperCase() }}
+                                        <span :class="['px-2 py-1 text-xs font-medium rounded-full', getRoleBadgeClass(user.roles?.[0]?.name)]">
+                                            {{ capitalizeFirstLetter(user.roles?.[0]?.name) }}
                                         </span>
                                     </TableCell>
                                     <TableCell>{{ user.division?.code }}</TableCell>
