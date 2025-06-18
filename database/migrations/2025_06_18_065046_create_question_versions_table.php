@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
             $table->foreignId('aspect_version_id')->constrained('aspect_versions')->cascadeOnDelete();
-            $table->int('version_number');
+            $table->integer('version_number');
             $table->text('question_text');
             $table->decimal('weight', 5, 2);
             $table->decimal('max_score', 5, 2);
             $table->decimal('min_score', 5, 2);
-            $table->boolean('is_mandatory')->default('false');
-            $table->effectiveFrom();
+            $table->boolean('is_mandatory')->default(false);
+            $table->timestamp('effective_from');
             $table->timestamps();
         });
     }

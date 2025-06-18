@@ -18,12 +18,12 @@ return new class extends Migration
             $table->string('purpose');
             $table->string('economic_sector');
             $table->string('business_field');
-            $table->int('collectibility');
+            $table->integer('collectibility');
             $table->boolean('restructuring');
             $table->timestamps();
         });
     }
-    
+
     /**
      * Reverse the migrations.
      */

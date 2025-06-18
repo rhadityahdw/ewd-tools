@@ -1,12 +1,10 @@
 <?php
 
-use App\Status;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 use function App\Helpers\enum_values;
-use function Illuminate\Support\enum_value;
 
 return new class extends Migration
 {
@@ -21,7 +19,7 @@ return new class extends Migration
             $table->date('start_date');
             $table->date('end_date');
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-            $table->enum('status', enum_values(Status::class));
+            $table->enum('status', ['draft', 'active', 'ended', 'expired']);
             $table->timestamps();
         });
     }

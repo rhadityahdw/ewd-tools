@@ -17,8 +17,8 @@ return new class extends Migration
         Schema::create('report_summaries', function (Blueprint $table) {
             $table->id();
             $table->foreignId('report_id')->constrained('reports')->cascadeOnDelete();
-            $table->enum('final_classification', enum_values(Classification::class));
-            $table->int('indicative_collectibility');
+            $table->enum('final_classification', ['safe', 'warning']);
+            $table->integer('indicative_collectibility');
             $table->boolean('override');
             $table->text('override_reason');
             $table->text('business_notes');

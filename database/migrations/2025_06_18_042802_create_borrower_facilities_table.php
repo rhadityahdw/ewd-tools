@@ -20,7 +20,7 @@ return new class extends Migration
             $table->decimal('interest_rate', 5, 2); // Suku Bunga Efektif (%)
             $table->decimal('principal_arrears', 12, 2); // Tunggakan Pokok
             $table->decimal('interest_arrears', 12, 2); // Tunggakan Bunga
-            $table->int('pdo_days');
+            $table->integer('pdo_days');
             $table->date('maturity_date', 12, 2); // Tanggal Jatuh Tempo
             $table->timestamps();
         });

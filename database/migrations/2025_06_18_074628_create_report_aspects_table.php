@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('report_id')->constrained('reports')->cascadeOnDelete();
             $table->foreignId('aspect_version_id')->constrained('aspect_versions')->cascadeOnDelete();
             $table->decimal('total_score', 5, 2);
-            $table->enum('classification', enum_values(Classification::class));
+            $table->enum('classification', ['safe', 'warning']);
             $table->timestamps();
         });
     }
