@@ -17,6 +17,10 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             DivisionSeeder::class,
             UserSeeder::class,
+            // Tambahkan seeder report di sini
+            ReportSeeder::class,
+            ReportSummarySeeder::class,
+            ReportAspectSeeder::class,
         ]);
     }
 }

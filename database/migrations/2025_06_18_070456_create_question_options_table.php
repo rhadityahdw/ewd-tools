@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aspects', function (Blueprint $table) {
+        Schema::create('question_options', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('code')->unique();
-            $table->text('description')->nullable();
+            $table->foreignId('question_version_id')->constrained('question_versions')->cascadeOnDelete();
+            $table->string('option_text');
+            $table->decimal('score', 5, 2);
+            $table->effectiveFrom();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('aspects');
+        Schema::dropIfExists('question_options');
     }
 };

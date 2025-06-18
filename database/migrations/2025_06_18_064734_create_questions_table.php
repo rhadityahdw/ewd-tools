@@ -11,14 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('template_aspects', function (Blueprint $table) {
+        Schema::create('questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('template_id')->constrained('templates')->cascadeOnDelete();
-            $table->foreignId('aspect_id')->constrained('aspects')->cascadeOnDelete();
-            $table->decimal('weight', 5, 2)->default(0.00); 
             $table->timestamps();
-
-            $table->unique(['template_id', 'aspect_id']);
         });
     }
 
@@ -27,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('template_aspects');
+        Schema::dropIfExists('questions');
     }
 };

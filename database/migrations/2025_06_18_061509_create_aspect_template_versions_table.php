@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('periods', function (Blueprint $table) {
+        Schema::create('aspect_template_versions', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->date('start_date');
-            $table->date('end_date')->nullable();
-            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-            $table->enum('status', ['draft', 'active', 'ended', 'expired'])->default('draft');
+            $table->foreignId('template_id')->constrained('templates')->cascadeOnDelete();
+            $table->foreignId('aspect_version_id')->constrained('aspect_versions')->cascadeOnDelete();
+            $table->int('weight');
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('periods');
+        Schema::dropIfExists('aspect_template_versions');
     }
 };

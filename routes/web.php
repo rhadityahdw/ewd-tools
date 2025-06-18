@@ -16,6 +16,10 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('summary', function () {
+    return Inertia::render('Summary');
+})->name('summary');
+
 Route::resource('users', UserController::class);
 
 Route::resource('borrowers', BorrowerController::class);

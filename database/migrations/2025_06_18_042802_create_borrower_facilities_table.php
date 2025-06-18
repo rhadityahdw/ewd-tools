@@ -15,13 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('borrower_id')->constrained('borrowers')->cascadeOnDelete();
             $table->string('facility_name');
-            $table->decimal('limit');
-            $table->decimal('outstanding');
-            $table->decimal('interest_rate');
-            $table->decimal('principal_arrears');
-            $table->decimal('interest_arrears');
-            $table->integer('pdo_days');
-            $table->date('maturity_date');
+            $table->decimal('limit', 12, 2);
+            $table->decimal('outstanding', 12, 2);
+            $table->decimal('interest_rate', 5, 2); // Suku Bunga Efektif (%)
+            $table->decimal('principal_arrears', 12, 2); // Tunggakan Pokok
+            $table->decimal('interest_arrears', 12, 2); // Tunggakan Bunga
+            $table->int('pdo_days');
+            $table->date('maturity_date', 12, 2); // Tanggal Jatuh Tempo
             $table->timestamps();
         });
     }

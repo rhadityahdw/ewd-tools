@@ -13,18 +13,17 @@ return new class extends Migration
     {
         Schema::create('borrower_details', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('borrower_id')->constrained('borrowers');
+            $table->foreignId('borrower_id')->constrained('borrowers')->cascadeOnDelete();
             $table->string('borrower_group')->nullable();
             $table->string('purpose');
             $table->string('economic_sector');
             $table->string('business_field');
-            $table->string('borrower_business');
-            $table->integer('collectibility');
+            $table->int('collectibility');
             $table->boolean('restructuring');
             $table->timestamps();
         });
     }
-
+    
     /**
      * Reverse the migrations.
      */
