@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('aspect_versions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('aspect_id')->constrained('aspects')->cascadeOnDelete();
-            $table->integer('version_number');
+            $table->integer('version');
             $table->string('name');
             $table->timestamp('effective_from');
             $table->timestamps();

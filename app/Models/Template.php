@@ -12,14 +12,31 @@ class Template extends Model
     protected $fillable = [
         'name',
     ];
+    
+    // Remove the incorrect relationship
+    // public function aspects()
+    // {
+    //     return $this->belongsToMany(Aspect::class, 'template_aspects');
+    // }
 
-    /**
-     * The aspects that belong to the template.
-     */
+    public function aspectVersions()
+    {
+        return $this->belongsToMany(AspectVersion::class, 'aspect_template_versions')
+                    ->withPivot('weight')
+                    ->withTimestamps();
+    }
+
+    // Add a helper method to get aspects through aspect versions
     public function aspects()
     {
-        return $this->belongsToMany(Aspect::class, 'template_aspects')
-            ->withPivot('weight')
-            ->withTimestamps();
+        return $this->belongsToMany(Aspect::class, 'aspect_template_versions', 'template_id', 'aspect_version_id')
+                    ->join('aspect_versions', 'aspects.id', '=', 'aspect_versions.aspect_id')
+                    ->withPivot('weight')
+                    ->withTimestamps();
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
     }
 }

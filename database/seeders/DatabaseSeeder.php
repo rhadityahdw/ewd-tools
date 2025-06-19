@@ -15,12 +15,15 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleSeeder::class,
+            PermissionSeeder::class,
             DivisionSeeder::class,
             UserSeeder::class,
+            AspectQuestionSeeder::class, // Add this line
+
             // Tambahkan seeder report di sini
-            ReportSeeder::class,
-            ReportSummarySeeder::class,
-            ReportAspectSeeder::class,
+            // ReportSeeder::class,
+            // ReportSummarySeeder::class,
+            // ReportAspectSeeder::class,
         ]);
     }
 }

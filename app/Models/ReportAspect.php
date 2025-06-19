@@ -16,6 +16,10 @@ class ReportAspect extends Model
         'classification',
     ];
 
+    protected $casts = [
+        'total_score' => 'decimal:2',
+    ];
+
     public function report()
     {
         return $this->belongsTo(Report::class);

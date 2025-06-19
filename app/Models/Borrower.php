@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Borrower extends Model
-{
+{   
+    use HasFactory;
+
     protected $fillable = [
         'name',
         'division_id'
@@ -24,6 +27,11 @@ class Borrower extends Model
     public function facilities()
     {
         return $this->hasMany(BorrowerFacility::class);
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
     }
 
 }

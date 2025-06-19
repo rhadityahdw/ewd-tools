@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Status;
 use Illuminate\Database\Eloquent\Model;
 
 class Period extends Model
@@ -17,6 +18,7 @@ class Period extends Model
     protected $casts = [
         'start_date' => 'date:Y-m-d',
         'end_date' => 'date:Y-m-d',
+        'status' => Status::class,
     ];
 
     const STATUS_DRAFT = 'draft';

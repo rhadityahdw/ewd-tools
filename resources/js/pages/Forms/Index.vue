@@ -10,6 +10,22 @@ import AspectForm from '@/pages/Forms/AspectForm.vue';
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
+// Tambahkan props
+const props = defineProps({
+    borrowers: {
+        type: Array,
+        default: () => [],
+    },
+    aspectGroups: {
+        type: Array,
+        default: () => [],
+    },
+    borrower_id: {
+        type: Number,
+        default: null,
+    },
+});
+
 const formState = useFormStore();
 
 const steps = [
@@ -19,6 +35,10 @@ const steps = [
         component: InformationForm,
         icon: IdCard,
         required: true,
+        props: {
+            borrowers: props.borrowers,
+            borrower_id: props.borrower_id,
+        },
     },
     {
         id: 2,
@@ -26,6 +46,7 @@ const steps = [
         component: FacilityForm,
         icon: Calculator,
         required: true,
+        props: {},
     },
     {
         id: 3,
@@ -33,10 +54,15 @@ const steps = [
         component: AspectForm,
         icon: ListCheck,
         required: true,
+        props: {
+            aspectGroups: props.aspectGroups,
+        },
     },
 ];
 
-const currentComponent = computed(() => steps[formState.activeStep - 1].component); // Indexing
+const currentStep = computed(() => steps[formState.activeStep - 1]);
+const currentComponent = computed(() => currentStep.value.component);
+const currentProps = computed(() => currentStep.value.props || {});
 </script>
 
 <template>
@@ -86,12 +112,18 @@ const currentComponent = computed(() => steps[formState.activeStep - 1].componen
                 </StepperItem>
             </Stepper>
 
-            <!-- Component -->
-            <component :is="currentComponent" @next="formState.nextStep" @prev="formState.prevStep" class="container mx-auto mb-4 sm:mb-6" />
+            <!-- Component dengan props -->
+            <component
+                :is="currentComponent"
+                v-bind="currentProps"
+                @next="formState.nextStep"
+                @prev="formState.prevStep"
+                class="container mx-auto mb-4 sm:mb-6"
+            />
 
             <div class="mx-auto flex max-w-4xl flex-col justify-end gap-4 sm:flex-row lg:max-w-6xl lg:gap-6 lg:px-8">
                 <Link v-if="formState.activeStep === 1" :href="route('dashboard')">
-                    <Button class="w-full min-w-24 bg-red-600 hover:bg-red-700 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3">Cancel</Button>
+                    <Button variant="outline" class="w-full min-w-2 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3">Beranda</Button>
                 </Link>
 
                 <Button
@@ -109,9 +141,14 @@ const currentComponent = computed(() => steps[formState.activeStep - 1].componen
                     >Next</Button
                 >
 
-                <Button v-if="formState.activeStep === formState.totalSteps" @click="" class="w-full min-w-24 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3"
-                    >Submit</Button
-                >
+                <Link :href="route('summary')">
+                    <Button
+                        v-if="formState.activeStep === formState.totalSteps"
+                        @click=""
+                        class="w-full min-w-24 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3"
+                        >Submit</Button
+                    >
+                </Link>
             </div>
         </div>
     </div>

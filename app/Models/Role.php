@@ -9,15 +9,16 @@ class Role extends Model
 {
     protected $fillable = [
         'name',
+        'guard_name'
     ];
-
-    public function setNameAttribute($value)
-    {
-        $this->attributes['name'] = $value;
-    }
 
     public function users()
     {
-        return $this->hasMany(User::class, 'role_id');
+        return $this->morphedByMany(
+            config('auth.providers.users.model'),
+            config('permission.table_names.model_has_roles'),
+            config('permission.column_names.role_pivot_key'),
+            config('permission.column_names.model_morph_key')
+        );
     }
 }

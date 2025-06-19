@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, User, FileText, ClipboardList, PlusCircle, Clock } from 'lucide-vue-next';
+import { BookOpen, CircleDivide, ClipboardList, Clock, FileText, Folder, LayoutGrid, PlusCircle, RollerCoaster, User } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -27,18 +27,28 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Template',
         href: '/templates',
-        icon: FileText, 
+        icon: FileText,
     },
     {
         title: 'Aspek',
         href: '/aspects',
-        icon: ClipboardList, 
+        icon: ClipboardList,
     },
     {
         title: 'Periode',
         href: '/periods',
         icon: Clock,
-    }
+    },
+    {
+        title: 'Divisi',
+        href: '/divisions',
+        icon: CircleDivide,
+    },
+    {
+        title: 'Role',
+        href: '/roles',
+        icon: RollerCoaster,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -72,8 +82,10 @@ const footerNavItems: NavItem[] = [
         <SidebarContent>
             <div class="px-2 py-1">
                 <Link :href="route('forms.index')" class="w-full">
-                    <button class="flex items-center justify-center w-full gap-2 px-4 py-2 text-sm font-medium text-white dark:text-black transition-colors bg-primary rounded-md hover:bg-primary/90">
-                        <PlusCircle class="w-4 h-4" />
+                    <button
+                        class="bg-primary hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-white transition-colors dark:text-black"
+                    >
+                        <PlusCircle class="h-4 w-4" />
                         <span>Tambah Report Baru</span>
                     </button>
                 </Link>

@@ -4,83 +4,69 @@ import { Head, useForm, Link } from '@inertiajs/vue3';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import InputError from '@/components/InputError.vue';
-import { Save, PlusCircle, Trash2 } from 'lucide-vue-next';
-import type { BreadcrumbItem, Aspect } from '@/types';
-import { ref, watch } from 'vue';
+import { Save } from 'lucide-vue-next';
+import type { BreadcrumbItem } from '@/types';
+import { ref, computed } from 'vue';
+
+interface AspectVersion {
+  id: number;
+  name: string;
+  version: number;
+}
+
+interface Aspect {
+  id: number;
+  name: string;
+  description: string;
+  aspectVersions: AspectVersion[];
+}
 
 const props = defineProps<{
-  aspects: Array<{
-        id: number,
-        name: string,
-        description: string,
-        weight: number,
-        questions: Array<{
-            id: number,
-            aspect_id: number,
-            question_text: string,
-        }>
-    }>
+  aspects: Aspect[]
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: 'Dashboard',
-    href: route('dashboard'),
-  },
-  {
-    title: 'Template',
-    href: route('templates.index'),
-  },
-  {
-    title: 'Tambah Template',
-    href: route('templates.create'),
-  },
+  { title: 'Dashboard', href: route('dashboard') },
+  { title: 'Template', href: route('templates.index') },
+  { title: 'Tambah Template', href: route('templates.create') },
 ];
 
 const form = useForm({
   name: '',
-  aspect_ids: [] as number[],
+  aspect_weights: [] as Array<{aspect_version_id: number, weight: number}>
 });
 
-const selectedAspects = ref<number[]>([]);
+const selectedAspects = ref<Array<{aspect_version_id: number, weight: number}>>([]);
 
+const totalWeight = computed(() => {
+  return selectedAspects.value.reduce((sum, a) => sum + a.weight, 0);
+});
 
-const submit = () => {
-  form.aspect_ids = [...selectedAspects.value];
-  
-  if (form.aspect_ids.length === 0) {
-    alert('Silakan pilih minimal satu aspek');
-    return;
-  }
-  
-  form.post(route('templates.store'), {
-    preserveScroll: true,
-    onSuccess: () => {
-      console.log('Data berhasil disimpan');
-    },
-    onError: (errors) => {
-      console.error('Error saat menyimpan:', errors);
-    }
-  });
-};
-
-const toggleAspect = (aspectId: number) => {
-  const index = selectedAspects.value.indexOf(aspectId);
+const toggleAspect = (aspectVersionId: number) => {
+  const index = selectedAspects.value.findIndex(a => a.aspect_version_id === aspectVersionId);
   if (index === -1) {
-    selectedAspects.value.push(aspectId);
+    selectedAspects.value.push({ aspect_version_id: aspectVersionId, weight: 0 });
   } else {
     selectedAspects.value.splice(index, 1);
   }
-  console.log('Toggle aspek:', aspectId, 'Selected aspects:', selectedAspects.value);
 };
 
-const isAspectSelected = (aspectId: number) => {
-  return selectedAspects.value.includes(aspectId);
+const isAspectSelected = (aspectVersionId: number) => {
+  return selectedAspects.value.some(a => a.aspect_version_id === aspectVersionId);
+};
+
+const submit = () => {
+  form.aspect_weights = selectedAspects.value.filter(a => a.weight > 0);
+  
+  if (Math.abs(totalWeight.value - 100) > 0.01) {
+    alert('Total bobot harus 100%');
+    return;
+  }
+  
+  form.post(route('templates.store'));
 };
 </script>
 
@@ -96,54 +82,53 @@ const isAspectSelected = (aspectId: number) => {
           </CardHeader>
           <CardContent>
             <form @submit.prevent="submit" class="space-y-8">
-
               <div class="grid gap-2">
-                  <Label for="name">Nama Template</Label>
-                  <Input id="name" v-model="form.name" required />
-                  <InputError :message="form.errors.name" />
-                </div>
+                <Label for="name">Nama Template</Label>
+                <Input id="name" v-model="form.name" required />
+                <InputError :message="form.errors.name" />
+              </div>
 
-              <!-- Aspek yang Termasuk -->
               <div class="space-y-4 border p-4 rounded-lg">
                 <h3 class="text-lg font-semibold">Aspek yang Termasuk</h3>
-                
-                <div v-if="aspects.length === 0" class="text-center py-4 text-gray-500">
-                  Belum ada aspek yang tersedia. Silakan tambahkan aspek terlebih dahulu.
+                <div class="text-sm text-gray-600 mb-4">
+                  Total Bobot: {{ totalWeight }}% (harus 100%)
                 </div>
                 
-                <div v-else class="space-y-4">
-                  <div v-if="form.errors.aspect_ids" class="text-red-500 text-sm">
-                    {{ form.errors.aspect_ids }}
-                  </div>
-                  
-                  <div class="grid gap-4 md:grid-cols-2">
-                    <div v-for="aspect in aspects" :key="aspect.id" class="flex items-start space-x-2 border p-3 rounded-md">
-                      <input 
-                        type="checkbox" 
-                        :id="`aspect-${aspect.id}`" 
-                        :value="aspect.id"
-                        :checked="isAspectSelected(aspect.id)"
-                        @change="toggleAspect(aspect.id)"
-                        class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                <div class="space-y-4">
+                  <div v-for="aspect in aspects" :key="aspect.id" class="border p-4 rounded">
+                    <div v-for="version in aspect.aspectVersions" :key="version.id" class="flex items-center space-x-4">
+                      <Checkbox 
+                        :id="`aspect-${version.id}`"
+                        :checked="isAspectSelected(version.id)"
+                        @update:checked="toggleAspect(version.id)"
                       />
-                      <div>
-                        <Label :for="`aspect-${aspect.id}`" class="font-medium">{{ aspect.name }}</Label>
-                        <p class="text-sm text-gray-500">{{ aspect.description || 'Tidak ada deskripsi' }}</p>
-                        <p class="text-xs text-gray-400 mt-1">Bobot: {{ aspect.weight }} | Pertanyaan: {{ aspect.questions?.length || 0 }}</p>
+                      <Label :for="`aspect-${version.id}`" class="flex-1">
+                        {{ version.name }} (v{{ version.version }})
+                      </Label>
+                      <div v-if="isAspectSelected(version.id)" class="flex items-center space-x-2">
+                        <Label>Bobot:</Label>
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          max="100" 
+                          step="0.01"
+                          class="w-20"
+                          v-model.number="selectedAspects.find(a => a.aspect_version_id === version.id)!.weight"
+                        />
+                        <span>%</span>
                       </div>
                     </div>
                   </div>
                 </div>
+                <InputError :message="form.errors.aspect_weights" />
               </div>
 
-              <div class="flex justify-end space-x-2">
+              <div class="flex justify-end space-x-4">
                 <Link :href="route('templates.index')">
-                  <Button type="button" variant="outline">
-                    Batal
-                  </Button>
+                  <Button type="button" variant="outline">Batal</Button>
                 </Link>
                 <Button type="submit" :disabled="form.processing">
-                  <Save class="h-4 w-4 mr-2" />
+                  <Save class="w-4 h-4 mr-2" />
                   Simpan Template
                 </Button>
               </div>

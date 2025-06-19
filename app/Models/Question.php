@@ -14,14 +14,20 @@ class Question extends Model
         'is_mandatory', 
     ];
 
+    protected $casts = [
+        'weight' => 'decimal:2',
+        'max_score' => 'decimal:2',
+        'min_score' => 'decimal:2',
+        'is_mandatory' => 'boolean',
+    ];
+
+    public function versions()
+    {
+        return $this->hasMany(QuestionVersion::class);
+    }
+
     public function aspect()
     {
         return $this->belongsTo(Aspect::class);
     }
-
-     // Mengatur bobot menjadi desimal (simpan sebagai 1 = 100%)
-     public function setWeightAttribute($value)
-     {
-         $this->attributes['weight'] = $value / 100;  // Simpan dalam format desimal
-     }
 }

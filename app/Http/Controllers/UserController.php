@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Role;
 use App\Models\Division;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -62,7 +62,7 @@ class UserController extends Controller
 
         $role = Role::findById($request->role_id);
         if ($role) {
-            $user->assignRole($role->name); // Assign the role by its name
+            $user->assignRole($role->name);
         }
 
         return redirect()->route('users.index')->with('success', 'User created successfully');

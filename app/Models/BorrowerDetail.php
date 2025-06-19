@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class BorrowerDetail extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'borrower_id',
         'borrower_group',
@@ -18,8 +21,8 @@ class BorrowerDetail extends Model
     ];
 
     protected $casts = [
-        'collectibility' => 'boolean',
-        'restructuring' => 'integer',
+        'collectibility' => 'integer',
+        'restructuring' => 'boolean',
     ];
 
     public function borrower()
