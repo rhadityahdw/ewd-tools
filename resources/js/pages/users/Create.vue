@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
-import type { BreadcrumbItem, Division, Role } from '@/types';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import InputError from '@/components/InputError.vue';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItem, Division, Role } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { useToast } from 'vue-toastification';
+
+const toast = useToast();
 
 defineProps<{
-    roles: Role[],
-    divisions: Division[],
+    roles: Role[];
+    divisions: Division[];
 }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -24,7 +27,7 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: route('users.index'),
     },
     {
-        title: 'Create',
+        title: 'Tambah User',
         href: route('users.create'),
     },
 ];
@@ -35,49 +38,69 @@ const form = useForm({
     password: '',
     password_confirmation: '',
     role_id: '',
-    division_id: '', 
+    division_id: '',
 });
 
 const submit = () => {
     form.post(route('users.store'), {
-        preserveScroll: true,
+        onSuccess: () => {
+            toast.success('User berhasil ditambah.');
+        },
+        onError: () => {
+            toast.error('Gagal menambah user. Silahkan periksa kembali data Anda.');
+        },
+        onFinish: () => {
+            resetForm();
+        },
     });
+};
+
+const resetForm = () => {
+    form.reset();
 };
 </script>
 
 <template>
-    <Head title="Create User" />
+    <Head title="Tambah User" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="py-6 md:py-12">
             <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
                 <Card>
-                    <CardHeader>
-                        <CardTitle class="text-xl md:text-2xl font-bold">Create User</CardTitle>
+                    <CardHeader class="flex flex-row items-center justify-between">
+                        <CardTitle class="text-xl font-bold md:text-2xl">Tambah User</CardTitle>
+                        <Link :href="route('users.index')">
+                            <Button type="button" variant="outline">Kembali</Button>
+                        </Link>
                     </CardHeader>
-                    <CardContent>
-                        <form @submit.prevent="submit" class="space-y-6">
+                    <form @submit.prevent="submit" class="space-y-6">
+                        <CardContent class="space-y-6">
                             <div class="grid gap-2">
-                                <Label for="name">Name</Label>
-                                <Input id="name" v-model="form.name" autocomplete="name" />
+                                <Label for="name">Nama</Label>
+                                <Input id="name" v-model="form.name" placeholder="Masukan nama pengguna" />
                                 <InputError :message="form.errors.name" />
                             </div>
 
                             <div class="grid gap-2">
                                 <Label for="email">Email</Label>
-                                <Input id="email" type="email" v-model="form.email" autocomplete="email" />
+                                <Input id="email" type="email" v-model="form.email" placeholder="Masukan email pengguna" />
                                 <InputError :message="form.errors.email" />
                             </div>
 
                             <div class="grid gap-2">
                                 <Label for="password">Password</Label>
-                                <Input id="password" type="password" v-model="form.password" autocomplete="new-password" />
+                                <Input id="password" type="password" v-model="form.password" placeholder="Masukan password pengguna" />
                                 <InputError :message="form.errors.password" />
                             </div>
 
                             <div class="grid gap-2">
                                 <Label for="password_confirmation">Confirm Password</Label>
-                                <Input id="password_confirmation" type="password" v-model="form.password_confirmation" autocomplete="new-password" />
+                                <Input
+                                    id="password_confirmation"
+                                    type="password"
+                                    v-model="form.password_confirmation"
+                                    placeholder="Konfirmasi password terbaru"
+                                />
                                 <InputError :message="form.errors.password_confirmation" />
                             </div>
 
@@ -85,10 +108,10 @@ const submit = () => {
                                 <Label for="role_id">Role</Label>
                                 <Select v-model="form.role_id">
                                     <SelectTrigger class="w-full">
-                                        <SelectValue placeholder="Select a role" />
+                                        <SelectValue placeholder="Pilih role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-if="roles" v-for="role in roles" :key="role.id" :value="role.id" >
+                                        <SelectItem v-if="roles" v-for="role in roles" :key="role.id" :value="role.id">
                                             {{ role.name.toUpperCase() }}
                                         </SelectItem>
                                     </SelectContent>
@@ -100,25 +123,23 @@ const submit = () => {
                                 <Label for="division_id">Division</Label>
                                 <Select v-model="form.division_id">
                                     <SelectTrigger class="w-full">
-                                        <SelectValue placeholder="Select a division (if needed)" />
+                                        <SelectValue placeholder="Pilih divisi (optional)" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-if="divisions" v-for="division in divisions" :key="division.id" :value="division.id" >
+                                        <SelectItem v-if="divisions" v-for="division in divisions" :key="division.id" :value="division.id">
                                             {{ division.code }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <InputError :message="form.errors.division_id" />
                             </div>
+                        </CardContent>
 
-                            <div class="flex items-center justify-end gap-4">
-                                <Link :href="route('users.index')">
-                                    <Button type="button" variant="outline">Cancel</Button>
-                                </Link>
-                                <Button type="submit" :disabled="form.processing">Submit</Button>
-                            </div>
-                        </form>
-                    </CardContent>
+                        <CardFooter class="flex items-center justify-end gap-4">
+                            <Button type="button" variant="outline" @click="resetForm" v-if="form.isDirty">Reset</Button>
+                            <Button type="submit" :disabled="form.processing || !form.isDirty">Submit</Button>
+                        </CardFooter>
+                    </form>
                 </Card>
             </div>
         </div>

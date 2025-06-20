@@ -5,20 +5,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
+import { Edit, Eye, PlusIcon, Trash2 } from 'lucide-vue-next';
 
-const props = defineProps<{
-    users: Array<{
-        id: number;
-        name: string;
-        email: string;
-        roles: Array<{
-            name: string;
-        }>;
-        division: {
-            code: string;
-        };
-    }>;
-}>();
+const props = defineProps({
+    users: Object,
+});
+
+const users = props.users?.data;
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -43,37 +36,36 @@ const getRoleBadgeClass = (roleName: string) => {
             return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
 };
-
-const capitalizeFirstLetter = (string: string) => {
-    // return string.charAt(0).toUpperCase() + string.slice(1);
-};
 </script>
 
 <template>
-    <Head title="Users" />
+    <Head title="Daftar Users" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="py-6 md:py-12">
             <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
                 <Card>
                     <CardHeader class="mb-6 flex items-center justify-between">
-                        <CardTitle class="text-xl font-bold md:text-2xl">Daftar Pengguna</CardTitle>
+                        <CardTitle class="text-xl font-bold md:text-2xl">Daftar User</CardTitle>
                         <Link :href="route('users.create')">
-                            <Button>Create User</Button>
+                            <Button>
+                                <PlusIcon class="h-4 w-4" />
+                                Tambah User
+                            </Button>
                         </Link>
                     </CardHeader>
                     <CardContent>
                         <div v-if="users.length === 0" class="py-8 text-center text-gray-500">
-                            Belum ada pengguna yang terdaftar. Silakan tambahkan pengguna baru.
+                            Belum ada user yang terdaftar. Silakan tambahkan user baru.
                         </div>
                         <Table v-else>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Name</TableHead>
+                                    <TableHead>Nama User</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Role</TableHead>
-                                    <TableHead>Division</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead>Divisi</TableHead>
+                                    <TableHead class="text-right"></TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -82,56 +74,24 @@ const capitalizeFirstLetter = (string: string) => {
                                     <TableCell>{{ user.email }}</TableCell>
                                     <TableCell>
                                         <span :class="['rounded-full px-2 py-1 text-xs font-medium', getRoleBadgeClass(user.roles?.[0]?.name)]">
-                                            {{ capitalizeFirstLetter(user.roles?.[0]?.name) || 'NO ROLE' }}
+                                            {{ user.role.name || 'NO ROLE' }}
                                         </span>
                                     </TableCell>
                                     <TableCell>{{ user.division?.code }}</TableCell>
                                     <TableCell class="flex justify-end space-x-3 text-right">
                                         <Link
-                                            :href="route('users.edit', user.id)"
-                                            class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                            title="Edit"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                class="h-5 w-5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 0L11.828 15.1l-3.414.586.586-3.414 9.586-9.586z"
-                                                />
-                                            </svg>
-                                        </Link>
-                                        <Link
                                             :href="route('users.show', user.id)"
                                             class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                                             title="View"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                class="h-5 w-5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                />
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                                />
-                                            </svg>
+                                            <Eye class="h-5 w-5" />
+                                        </Link>
+                                        <Link
+                                            :href="route('users.edit', user.id)"
+                                            class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            title="Edit"
+                                        >
+                                            <Edit class="h-5 w-5" />
                                         </Link>
                                         <Link
                                             :href="route('users.destroy', user.id)"
@@ -142,20 +102,7 @@ const capitalizeFirstLetter = (string: string) => {
                                             onclick="return confirm('Are you sure you want to delete this user?')"
                                             title="Delete"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                class="h-5 w-5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                />
-                                            </svg>
+                                            <Trash2 class="h-5 w-5" />
                                         </Link>
                                     </TableCell>
                                 </TableRow>

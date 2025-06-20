@@ -32,9 +32,9 @@ export interface Role {
 }
 
 export interface Division {
-    id: number,
-    code: string,
-    name: string
+    id: number;
+    code: string;
+    name: string;
 }
 
 export interface User {
@@ -43,11 +43,7 @@ export interface User {
     email: string;
     password: string;
     role_id: number;
-    role: Role[];
-    division_id?: number;
-    division?: Division;
-    created_at?: string;
-    updated_at?: string;
+    division_id: number;
 }
 
 export interface Borrower {
@@ -125,7 +121,7 @@ export interface Answer {
     answer_value: string;
     answer_description?: string;
     created_at?: string;
-    updated_at?: string; 
+    updated_at?: string;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

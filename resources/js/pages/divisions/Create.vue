@@ -34,12 +34,17 @@ const form = useForm({
 const submit = () => {
     form.post(route('divisions.store'), {
         onSuccess: () => {
+            resetForm();
             toast.success('Divisi berhasil ditambah.');
         },
         onError: () => {
             toast.error('Gagal menambah divisi. Silahkan periksa kembali data Anda.');
         },
     });
+};
+
+const resetForm = () => {
+    form.reset();
 };
 </script>
 
@@ -52,6 +57,9 @@ const submit = () => {
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between">
                         <CardTitle class="text-xl font-bold md:text-2xl">Tambah Divisi</CardTitle>
+                        <Link :href="route('divisions.index')">
+                            <Button type="button" variant="outline">Kembali</Button>
+                        </Link>
                     </CardHeader>
                     <form @submit.prevent="submit" class="space-y-6">
                         <CardContent class="space-y-6">
@@ -68,9 +76,7 @@ const submit = () => {
                         </CardContent>
 
                         <CardFooter class="flex items-center justify-end gap-4">
-                            <Link :href="route('divisions.index')">
-                                <Button type="button" variant="outline">Batal</Button>
-                            </Link>
+                            <Button type="button" variant="outline" @click="resetForm" v-if="form.isDirty">Reset</Button>
                             <Button type="submit" :disabled="form.processing || !form.isDirty">Simpan Data</Button>
                         </CardFooter>
                     </form>

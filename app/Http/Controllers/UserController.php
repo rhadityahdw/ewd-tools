@@ -2,68 +2,42 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Models\Division;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules;
+use App\Services\UserService;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-        
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(private UserService $userService)
+    {}
+
     public function index()
     {
-        $users = User::with(['roles', 'division'])->get();
+        $user = User::with(['roles', 'division'])->get();
+
+        $users = UserResource::collection($user);
         
         return Inertia::render('users/Index', [
             'users' => $users
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $roles = Role::all();
-        $divisions = Division::all();
-        
         return Inertia::render('users/Create', [
-            'roles' => $roles,
-            'divisions' => $divisions
+            'roles' => Role::all(),
+            'divisions' => Division::all()
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role_id' => ['required', Rule::exists('roles', 'id')],
-            'division_id' => ['nullable', Rule::exists('divisions', 'id')],
-        ]);
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'division_id' => $request->division_id,
-        ]);
-
-        $role = Role::findById($request->role_id);
-        if ($role) {
-            $user->assignRole($role->name);
-        }
+        $this->userService->createUser($request->validated());
 
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
@@ -74,7 +48,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         return Inertia::render('users/Show', [
-            'user' => $user->load(['roles', 'division'])
+            'user' => new UserResource($user->load(['roles', 'division']))
         ]);
     }
 
@@ -82,43 +56,20 @@ class UserController extends Controller
      * Show the form for editing the specified resource.
      */
     public function edit(User $user)
-    {
-        $roles = Role::all();
-        $divisions = Division::all();
-        
+    {        
         return Inertia::render('users/Edit', [
-            'user' => $user,
-            'roles' => $roles,
-            'divisions' => $divisions
+            'user' => new UserResource($user),
+            'roles' => Role::all(),
+            'divisions' => Division::all()
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,'.$user->id,
-            'role_id' => 'required|exists:roles,id',
-        ]);
-
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role_id' => $request->role_id,
-        ]);
-
-        if ($request->filled('password')) {
-            $request->validate([
-                'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            ]);
-            
-            $user->update([
-                'password' => Hash::make($request->password),
-            ]);
-        }
+        $this->userService->updateUser($user, $request->validated());
 
         return redirect()->route('users.index')->with('success', 'User updated successfully');
     }

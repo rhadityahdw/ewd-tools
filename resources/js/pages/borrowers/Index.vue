@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
-import { PlusIcon } from 'lucide-vue-next';
+import { Edit, Eye, PlusIcon, Trash2 } from 'lucide-vue-next';
 
 defineProps<{
     borrowers: Array<{
@@ -32,13 +32,13 @@ const breadcrumbs: BreadcrumbItem[] = [
 </script>
 
 <template>
-    <Head title="Borrowers" />
+    <Head title="Daftar Debitur" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="py-6 md:py-12">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
                 <Card>
-                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardHeader class="flex items-center justify-between">
                         <CardTitle class="text-xl font-bold md:text-2xl">Daftar Debitur</CardTitle>
                         <Link :href="route('borrowers.create')">
                             <Button>
@@ -54,7 +54,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                         <Table v-else>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Nama</TableHead>
+                                    <TableHead>Nama Debitur</TableHead>
                                     <TableHead>Divisi</TableHead>
                                     <TableHead class="text-right"></TableHead>
                                 </TableRow>
@@ -65,50 +65,18 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <TableCell>{{ borrower.division?.code }} - {{ borrower.division?.name }} </TableCell>
                                     <TableCell class="flex justify-end space-x-3 text-right">
                                         <Link
-                                            :href="route('borrowers.edit', borrower.id)"
-                                            class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                            title="Edit"
-                                        >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                class="h-5 w-5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 0L11.828 15.1l-3.414.586.586-3.414 9.586-9.586z"
-                                                />
-                                            </svg>
-                                        </Link>
-                                        <Link
                                             :href="route('borrowers.show', borrower.id)"
                                             class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                                             title="View"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                class="h-5 w-5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                                />
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                                />
-                                            </svg>
+                                            <Eye class="h-5 w-5" />
+                                        </Link>
+                                        <Link
+                                            :href="route('borrowers.edit', borrower.id)"
+                                            class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            title="Edit"
+                                        >
+                                            <Edit class="h-5 w-5" />
                                         </Link>
                                         <Link
                                             :href="route('borrowers.destroy', borrower.id)"
@@ -119,20 +87,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             onclick="return confirm('Are you sure you want to delete this user?')"
                                             title="Delete"
                                         >
-                                            <svg
-                                                xmlns="http://www.w3.org/2000/svg"
-                                                class="h-5 w-5"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                            >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                />
-                                            </svg>
+                                            <Trash2 class="h-5 w-5" />
                                         </Link>
                                     </TableCell>
                                 </TableRow>
