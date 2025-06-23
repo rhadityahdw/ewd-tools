@@ -12,29 +12,18 @@ class AspectVersion extends Model
 
     protected $fillable = [
         'aspect_id',
-        'version',
+        'version_number',
         'name',
-        'code',
-        'description',
-        'weight',
-        'is_active',
+        'effective_from',
     ];
 
     protected $casts = [
-        'weight' => 'decimal:2',
-        'is_active' => 'boolean',
+        'effective_from' => 'datetime',
     ];
 
     public function aspect()
     {
-        return $this->belongsTo(Aspect::class);
-    }
-
-    public function templates()
-    {
-        return $this->belongsToMany(Template::class, 'aspect_template_versions')
-                    ->withPivot('weight')
-                    ->withTimestamps();
+        return $this->belongsTo(Aspect::class, 'aspect_id');
     }
 
     public function questionVersions()

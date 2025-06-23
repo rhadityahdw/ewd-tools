@@ -6,28 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Question extends Model
 {
-    protected $fillable = [
-        'question_text', 
-        'weight', 
-        'max_score', 
-        'min_score',
-        'is_mandatory', 
-    ];
-
-    protected $casts = [
-        'weight' => 'decimal:2',
-        'max_score' => 'decimal:2',
-        'min_score' => 'decimal:2',
-        'is_mandatory' => 'boolean',
-    ];
+    protected $guarded = [];
 
     public function versions()
     {
         return $this->hasMany(QuestionVersion::class);
     }
 
-    public function aspect()
+    public function visibilityRules()
     {
-        return $this->belongsTo(Aspect::class);
+        return $this->morphMany(VisibilityRule::class, 'entity');
     }
 }

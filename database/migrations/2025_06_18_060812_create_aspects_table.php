@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('aspects', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Add this line
             $table->string('code')->unique();
-            $table->text('description')->nullable(); // Add this line
             $table->timestamps();
         });
     }

@@ -12,6 +12,7 @@ class QuestionVersion extends Model
     protected $fillable = [
         'question_id',
         'aspect_version_id',
+        'version_number',
         'question_text',
         'weight',
         'max_score',

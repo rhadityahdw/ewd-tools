@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('question_versions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
-            $table->foreignId('aspect_version_id')->constrained('aspect_versions')->cascadeOnDelete();
+            $table->foreignId('question_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('aspect_version_id')->constrained()->cascadeOnDelete();
             $table->integer('version_number');
             $table->text('question_text');
-            $table->decimal('weight', 5, 2);
+            $table->decimal('weight', 5, 2); // Bobot dalam persen
             $table->decimal('max_score', 5, 2);
             $table->decimal('min_score', 5, 2);
             $table->boolean('is_mandatory')->default(false);
