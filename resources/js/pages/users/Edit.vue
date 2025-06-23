@@ -6,19 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, Division, Role, User } from '@/types';
+import type { BreadcrumbItem, Division, Role } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { useToast } from 'vue-toastification';
 
 const toast = useToast();
 
-const props = defineProps<{
-    user: any;
-    roles: Role[];
-    divisions: Division[];
-}>();
+const props = defineProps({
+    user: Object,
+    roles: Array<Role>,
+    divisions: Array<Division>,
+});
 
-const user = props.user.data as User;
+const user = props.user?.data;
+
+console.log('User data:', user);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -41,7 +43,7 @@ const form = useForm({
     password: '',
     password_confirmation: '',
     role_id: user.role_id.toString(),
-    division_id: user.division_id?.toString(),
+    division_id: user.division_id?.toString() ?? '',
 });
 
 const submit = () => {
@@ -120,7 +122,7 @@ const resetForm = () => {
                                 <Label for="division_id">Division</Label>
                                 <Select v-model="form.division_id">
                                     <SelectTrigger class="w-full">
-                                        <SelectValue placeholder="Select a role" />
+                                        <SelectValue placeholder="Select a division" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="division in props.divisions" :key="division.id" :value="division.id.toString()">

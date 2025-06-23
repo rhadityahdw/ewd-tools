@@ -2,99 +2,68 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BorrowerRequest;
+use App\Http\Resources\BorrowerResource;
 use App\Models\Borrower;
 use App\Models\Division;
+use App\Services\BorrowerService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BorrowerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(
+        protected BorrowerService $borrowerService
+    ) {}
+    
     public function index()
     {
-        $borrowers = Borrower::with('division')->get();
+        $borrower = Borrower::with('division')->get();
+
+        $borrowers = BorrowerResource::collection($borrower);
         
         return Inertia::render('borrowers/Index', [
             'borrowers' => $borrowers
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        $divisions = Division::all();
-        
         return Inertia::render('borrowers/Create', [
-            'divisions' => $divisions
+            'divisions' => Division::all()
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(BorrowerRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'division_id' => 'required|exists:divisions,id',
-        ]);
-
-        Borrower::create([
-            'name' => $request->name,
-            'division_id' => $request->division_id,
-        ]);
+        $this->borrowerService->createBorrower($request->validated());
 
         return redirect()->route('borrowers.index')->with('success', 'Borrower created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Borrower $borrower)
     {
         return Inertia::render('borrowers/Show', [
-            'borrower' => $borrower->load('division')
+            'borrower' => new BorrowerResource($borrower->load('division'))
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Borrower $borrower)
     {
-        $divisions = Division::all();
         
         return Inertia::render('borrowers/Edit', [
-            'borrower' => $borrower,
-            'divisions' => $divisions
+            'borrower' => new BorrowerResource($borrower),
+            'divisions' => Division::all()
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Borrower $borrower)
+    public function update(BorrowerRequest $request, Borrower $borrower)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'division_id' => 'required|exists:divisions,id',
-        ]);
-
-        $borrower->update([
-            'name' => $request->name,
-            'division_id' => $request->division_id,
-        ]);
+        $this->borrowerService->updateBorrower($borrower, $request->validated());
 
         return redirect()->route('borrowers.index')->with('success', 'Borrower updated successfully');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Borrower $borrower)
     {
         $borrower->delete();

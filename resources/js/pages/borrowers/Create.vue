@@ -45,6 +45,9 @@ const submit = () => {
         onError: () => {
             toast.error('Gagal menambah debitur. Silahkan periksa kembali data Anda.');
         },
+        onFinish: () => {
+            resetForm();
+        },
     });
 };
 

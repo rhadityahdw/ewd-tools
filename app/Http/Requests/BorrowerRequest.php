@@ -3,11 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules;
 
-
-class StoreUserRequest extends FormRequest
+class BorrowerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,10 +23,7 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role_id' => ['required', Rule::exists('roles', 'id')],
-            'division_id' => ['nullable', Rule::exists('divisions', 'id')],
+            'division_id' => 'required|exists:divisions,id',
         ];
     }
 }

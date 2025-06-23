@@ -7,12 +7,11 @@ import type { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { Building, Edit, Mail, Shield, User } from 'lucide-vue-next';
 
-// Define to receive user data from the controller
-const props = defineProps<{
-    user: any;
-}>();
+const props = defineProps({
+    user: Object,
+});
 
-const user = props.user.data;
+const user = props.user?.data;
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -35,8 +34,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="py-6 md:py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <Card class="mb-8">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+                <Card>
                     <CardHeader class="flex flex-row items-center justify-between">
                         <CardTitle class="text-xl font-bold md:text-2xl">
                             {{ user.name }}

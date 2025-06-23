@@ -13,17 +13,16 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function __construct(private UserService $userService)
+    public function __construct(
+        protected UserService $userService)
     {}
 
     public function index()
     {
-        $user = User::with(['roles', 'division'])->get();
-
-        $users = UserResource::collection($user);
+        $users = User::with(['roles', 'division'])->get();
         
         return Inertia::render('users/Index', [
-            'users' => $users
+            'users' => UserResource::collection($users)
         ]);
     }
 
@@ -42,9 +41,6 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'User created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(User $user)
     {
         return Inertia::render('users/Show', [
@@ -52,9 +48,6 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(User $user)
     {        
         return Inertia::render('users/Edit', [
@@ -64,9 +57,6 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateUserRequest $request, User $user)
     {
         $this->userService->updateUser($user, $request->validated());
@@ -74,9 +64,6 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'User updated successfully');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(User $user)
     {
         $user->delete();

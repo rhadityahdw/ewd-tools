@@ -45,7 +45,7 @@ const getRoleBadgeClass = (roleName: string) => {
         <div class="py-6 md:py-12">
             <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
                 <Card>
-                    <CardHeader class="mb-6 flex items-center justify-between">
+                    <CardHeader class="flex items-center justify-between">
                         <CardTitle class="text-xl font-bold md:text-2xl">Daftar User</CardTitle>
                         <Link :href="route('users.create')">
                             <Button>

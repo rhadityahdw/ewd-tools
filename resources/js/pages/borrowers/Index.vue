@@ -7,17 +7,13 @@ import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { Edit, Eye, PlusIcon, Trash2 } from 'lucide-vue-next';
 
-defineProps<{
-    borrowers: Array<{
-        id: number;
-        name: string;
-        division: {
-            id: number;
-            code: string;
-            name: string;
-        };
-    }>;
-}>();
+const props = defineProps({
+    borrowers: Object,
+});
+
+const borrowers = props.borrowers?.data;
+
+console.log(borrowers);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
