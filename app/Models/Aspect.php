@@ -17,6 +17,11 @@ class Aspect extends Model
     {
         return $this->hasMany(AspectVersion::class);
     }
+    
+    public function latestVersion()
+    {
+        return $this->hasOne(AspectVersion::class)->latestOfMany();
+    }
 
     public function visibilityRules()
     {

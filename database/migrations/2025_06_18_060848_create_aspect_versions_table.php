@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('aspect_id')->constrained()->cascadeOnDelete();
             $table->integer('version_number');
             $table->string('name');
+            $table->text('description')->nullable();
             $table->timestamp('effective_from');
             $table->timestamps();
 
