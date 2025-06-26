@@ -1,20 +1,27 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, useForm, Link } from '@inertiajs/vue3';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import InputError from '@/components/InputError.vue';
-import { PlusCircle, Trash2, Save } from 'lucide-vue-next';
-import type { BreadcrumbItem, Aspect, Question } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { BreadcrumbItem } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { PlusCircle, Save, Trash2 } from 'lucide-vue-next';
+import { useToast } from 'vue-toastification';
 
-const props = defineProps<{
-    aspect: Aspect & {
-        questions: Question[]
-    }
-}>();
+const toast = useToast();
+
+const props = defineProps({
+    aspect: Object,
+});
+
+const aspect = props.aspect?.data;
+
+console.log('Aspect Data:', aspect);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -27,27 +34,64 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'Edit Aspek',
-        href: route('aspects.edit', props.aspect.id),
+        href: route('aspects.edit', aspect.id),
     },
 ];
 
-// Siapkan form dengan data yang sudah ada
 const form = useForm({
-    name: props.aspect.name,
-    description: props.aspect.description || '',
-    weight: props.aspect.weight,
-    questions: props.aspect.questions.map(q => ({
+    name: aspect.name,
+    description: aspect.description,
+    questions: aspect.latest_version.questions.map((q: any) => ({
         id: q.id,
         question_text: q.question_text,
-        weight: q.weight
-    }))
+        weight: q.weight,
+        max_score: q.max_score,
+        min_score: q.min_score,
+        is_mandatory: q.is_mandatory,
+        options: q.options.map((o: any) => ({
+            id: o.id,
+            option_text: o.option_text,
+            score: o.score,
+        })),
+        visibility_rules:
+            q.visibility_rules?.map((vr: any) => ({
+                id: vr.id,
+                description: vr.description,
+                source_type: vr.source_type,
+                source_field: vr.source_field,
+                operator: vr.operator,
+                value: vr.value,
+            })) || [],
+    })),
 });
+
+const sourceTypeOptions = [
+    { value: 'borrower_detail', label: 'Detail Peminjam' },
+    { value: 'borrower_facility', label: 'Fasilitas Peminjam' },
+    { value: 'answer', label: 'Jawaban' },
+];
+
+const operatorOptions = [
+    { value: '=', label: 'Sama dengan (=)' },
+    { value: '!=', label: 'Tidak sama dengan (!=)' },
+    { value: '>', label: 'Lebih besar dari (>)' },
+    { value: '<', label: 'Lebih kecil dari (<)' },
+    { value: '>=', label: 'Lebih besar atau sama dengan (>=)' },
+    { value: '<=', label: 'Lebih kecil atau sama dengan (<=)' },
+    { value: 'in', label: 'Termasuk dalam (in)' },
+    { value: 'not_in', label: 'Tidak termasuk dalam (not in)' },
+];
 
 const addQuestion = () => {
     form.questions.push({
-        id: props.aspect.questions.length + 1,
+        id: null,
         question_text: '',
         weight: 1,
+        max_score: 100,
+        min_score: 0,
+        is_mandatory: false,
+        options: [{ id: null, option_text: '', score: 0 }],
+        visibility_rules: [],
     });
 };
 
@@ -55,25 +99,56 @@ const removeQuestion = (index: number) => {
     form.questions.splice(index, 1);
 };
 
+const addOption = (questionIndex: number) => {
+    form.questions[questionIndex].options.push({
+        id: null,
+        option_text: '',
+        score: 0,
+    });
+};
+
+const removeOption = (questionIndex: number, optionIndex: number) => {
+    form.questions[questionIndex].options.splice(optionIndex, 1);
+};
+
+const addVisibilityRule = (questionIndex: number) => {
+    form.questions[questionIndex].visibility_rules.push({
+        id: null,
+        description: '',
+        source_type: 'borrower_detail',
+        source_field: '',
+        operator: '=',
+        value: '',
+    });
+};
+
+const removeVisibilityRule = (questionIndex: number, ruleIndex: number) => {
+    form.questions[questionIndex].visibility_rules.splice(ruleIndex, 1);
+};
+
 const submit = () => {
-    // Pastikan nilai numerik dikonversi dengan benar
     const formData = {
         ...form.data(),
-        weight: Number(form.weight),
-        questions: form.questions.map(q => ({
+        questions: form.questions.map((q: any) => ({
             ...q,
-            weight: Number(q.weight)
-        }))
+            weight: Number(q.weight),
+            max_score: Number(q.max_score),
+            min_score: Number(q.min_score),
+            options: q.options.map((o: any) => ({
+                ...o,
+                score: Number(o.score),
+            })),
+        })),
     };
-    
-    form.put(route('aspects.update', props.aspect.id), {
+
+    form.put(route('aspects.update', aspect.id), {
         preserveScroll: true,
         onSuccess: () => {
             console.log('Data berhasil diperbarui');
         },
         onError: (errors) => {
             console.error('Error saat memperbarui:', errors);
-        }
+        },
     });
 };
 </script>
@@ -86,14 +161,14 @@ const submit = () => {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle class="text-xl md:text-2xl font-bold">Edit Aspek</CardTitle>
+                        <CardTitle class="text-xl font-bold md:text-2xl">Edit Aspek</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <form @submit.prevent="submit" class="space-y-8">
                             <!-- Aspect Information -->
-                            <div class="space-y-4 border p-4 rounded-lg">
+                            <div class="space-y-4 rounded-lg border p-4">
                                 <h3 class="text-lg font-semibold">Informasi Aspek</h3>
-                                
+
                                 <div class="grid gap-2">
                                     <Label for="name">Nama Aspek</Label>
                                     <Input id="name" v-model="form.name" required />
@@ -105,58 +180,227 @@ const submit = () => {
                                     <Textarea id="description" v-model="form.description" rows="3" />
                                     <InputError :message="form.errors.description" />
                                 </div>
-
-                                <div class="grid gap-2">
-                                    <Label for="weight">Bobot</Label>
-                                    <Input id="weight" v-model="form.weight" type="number" min="0" step="0.01" required />
-                                    <InputError :message="form.errors.weight" />
-                                </div>
                             </div>
 
                             <!-- Questions -->
                             <div class="space-y-4">
-                                <div class="flex justify-between items-center">
+                                <div class="flex items-center justify-between">
                                     <h3 class="text-lg font-semibold">Pertanyaan</h3>
                                     <Button type="button" variant="outline" size="sm" @click="addQuestion">
-                                        <PlusCircle class="h-4 w-4 mr-2" />
+                                        <PlusCircle class="mr-2 h-4 w-4" />
                                         Tambah Pertanyaan
                                     </Button>
                                 </div>
 
-                                <div v-if="form.errors.questions" class="text-red-500 text-sm">
+                                <div v-if="form.errors.questions" class="text-sm text-red-500">
                                     {{ form.errors.questions }}
                                 </div>
 
-                                <div v-for="(question, index) in form.questions" :key="index" class="border p-4 rounded-lg space-y-4">
-                                    <div class="flex justify-between items-center">
-                                        <h4 class="font-medium">Pertanyaan {{ index + 1 }}</h4>
-                                        <Button type="button" variant="destructive" size="sm" @click="removeQuestion(index)" v-if="form.questions.length > 1">
+                                <div v-for="(question, questionIndex) in form.questions" :key="questionIndex" class="space-y-6 rounded-lg border p-6">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-medium">Pertanyaan {{ questionIndex + 1 }}</h4>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="sm"
+                                            @click="removeQuestion(questionIndex)"
+                                            v-if="form.questions.length > 1"
+                                        >
                                             <Trash2 class="h-4 w-4" />
                                         </Button>
                                     </div>
 
                                     <div class="grid gap-2">
-                                        <Label :for="`question-text-${index}`">Teks Pertanyaan</Label>
-                                        <Textarea :id="`question-text-${index}`" v-model="question.question_text" rows="2" required />
-                                        <InputError :message="(form.errors as any)[`questions.${index}.question_text`]" />
+                                        <Label :for="`question-text-${questionIndex}`">Teks Pertanyaan</Label>
+                                        <Textarea :id="`question-text-${questionIndex}`" v-model="question.question_text" rows="2" required />
+                                        <InputError :message="(form.errors as any)[`questions.${questionIndex}.question_text`]" />
                                     </div>
 
-                                    <div class="grid gap-2">
-                                        <Label :for="`question-weight-${index}`">Bobot</Label>
-                                        <Input :id="`question-weight-${index}`" v-model="question.weight" type="number" min="0" step="0.01" required />
-                                        <InputError :message="(form.errors as any)[`questions.${index}.weight`]" />
+                                    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                        <div class="grid gap-2">
+                                            <Label :for="`question-weight-${questionIndex}`">Bobot</Label>
+                                            <Input
+                                                :id="`question-weight-${questionIndex}`"
+                                                v-model="question.weight"
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                required
+                                            />
+                                            <InputError :message="(form.errors as any)[`questions.${questionIndex}.weight`]" />
+                                        </div>
+
+                                        <div class="grid gap-2">
+                                            <Label :for="`question-max-score-${questionIndex}`">Skor Maksimal</Label>
+                                            <Input
+                                                :id="`question-max-score-${questionIndex}`"
+                                                v-model="question.max_score"
+                                                type="number"
+                                                min="0"
+                                                required
+                                            />
+                                            <InputError :message="(form.errors as any)[`questions.${questionIndex}.max_score`]" />
+                                        </div>
+
+                                        <div class="grid gap-2">
+                                            <Label :for="`question-min-score-${questionIndex}`">Skor Minimal</Label>
+                                            <Input
+                                                :id="`question-min-score-${questionIndex}`"
+                                                v-model="question.min_score"
+                                                type="number"
+                                                min="0"
+                                                required
+                                            />
+                                            <InputError :message="(form.errors as any)[`questions.${questionIndex}.min_score`]" />
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-2">
+                                        <Checkbox :id="`question-mandatory-${questionIndex}`" v-model="question.is_mandatory" />
+                                        <Label :for="`question-mandatory-${questionIndex}`">Pertanyaan Wajib</Label>
+                                    </div>
+
+                                    <!-- Options -->
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <Label class="text-sm font-medium">Opsi Jawaban</Label>
+                                            <Button type="button" variant="outline" size="sm" @click="addOption(questionIndex)">
+                                                <PlusCircle class="mr-2 h-3 w-3" />
+                                                Tambah Opsi
+                                            </Button>
+                                        </div>
+
+                                        <div v-for="(option, optionIndex) in question.options" :key="optionIndex" class="flex items-center space-x-2">
+                                            <div class="flex-1">
+                                                <Input v-model="option.option_text" placeholder="Teks opsi" required />
+                                            </div>
+                                            <div class="w-24">
+                                                <Input v-model="option.score" type="number" placeholder="Skor" min="0" required />
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="destructive"
+                                                size="sm"
+                                                @click="removeOption(questionIndex, optionIndex)"
+                                                v-if="question.options.length > 1"
+                                            >
+                                                <Trash2 class="h-3 w-3" />
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Visibility Rules -->
+                                    <div class="space-y-4 rounded-lg border border-dashed p-4">
+                                        <div class="flex items-center justify-between">
+                                            <Label class="text-sm font-medium">Aturan Visibilitas</Label>
+                                            <Button type="button" variant="outline" size="sm" @click="addVisibilityRule(questionIndex)">
+                                                <PlusCircle class="mr-2 h-3 w-3" />
+                                                Tambah Aturan
+                                            </Button>
+                                        </div>
+
+                                        <div v-if="question.visibility_rules.length === 0" class="py-4 text-center text-sm text-gray-500">
+                                            Tidak ada aturan visibilitas. Pertanyaan akan selalu ditampilkan.
+                                        </div>
+
+                                        <div
+                                            v-for="(rule, ruleIndex) in question.visibility_rules"
+                                            :key="ruleIndex"
+                                            class="space-y-3 rounded border bg-gray-50 p-3"
+                                        >
+                                            <div class="flex items-center justify-between">
+                                                <span class="text-sm font-medium">Aturan {{ ruleIndex + 1 }}</span>
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    @click="removeVisibilityRule(questionIndex, ruleIndex)"
+                                                >
+                                                    <Trash2 class="h-3 w-3" />
+                                                </Button>
+                                            </div>
+
+                                            <div class="grid gap-3">
+                                                <div class="grid gap-2">
+                                                    <Label :for="`rule-description-${questionIndex}-${ruleIndex}`">Deskripsi</Label>
+                                                    <Input
+                                                        :id="`rule-description-${questionIndex}-${ruleIndex}`"
+                                                        v-model="rule.description"
+                                                        placeholder="Deskripsi aturan visibilitas"
+                                                    />
+                                                </div>
+
+                                                <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                                    <div class="grid gap-2">
+                                                        <Label :for="`rule-source-type-${questionIndex}-${ruleIndex}`">Tipe Sumber</Label>
+                                                        <Select v-model="rule.source_type">
+                                                            <SelectTrigger :id="`rule-source-type-${questionIndex}-${ruleIndex}`">
+                                                                <SelectValue placeholder="Pilih tipe sumber" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem
+                                                                    v-for="option in sourceTypeOptions"
+                                                                    :key="option.value"
+                                                                    :value="option.value"
+                                                                >
+                                                                    {{ option.label }}
+                                                                </SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+
+                                                    <div class="grid gap-2">
+                                                        <Label :for="`rule-source-field-${questionIndex}-${ruleIndex}`">Field Sumber</Label>
+                                                        <Input
+                                                            :id="`rule-source-field-${questionIndex}-${ruleIndex}`"
+                                                            v-model="rule.source_field"
+                                                            placeholder="Nama field"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                                                    <div class="grid gap-2">
+                                                        <Label :for="`rule-operator-${questionIndex}-${ruleIndex}`">Operator</Label>
+                                                        <Select v-model="rule.operator">
+                                                            <SelectTrigger :id="`rule-operator-${questionIndex}-${ruleIndex}`">
+                                                                <SelectValue placeholder="Pilih operator" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem
+                                                                    v-for="option in operatorOptions"
+                                                                    :key="option.value"
+                                                                    :value="option.value"
+                                                                >
+                                                                    {{ option.label }}
+                                                                </SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+
+                                                    <div class="grid gap-2">
+                                                        <Label :for="`rule-value-${questionIndex}-${ruleIndex}`">Nilai</Label>
+                                                        <Input
+                                                            :id="`rule-value-${questionIndex}-${ruleIndex}`"
+                                                            v-model="rule.value"
+                                                            placeholder="Nilai untuk perbandingan"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex justify-end space-x-2">
                                 <Link :href="route('aspects.index')">
-                                    <Button type="button" variant="outline">
-                                        Batal
-                                    </Button>
+                                    <Button type="button" variant="outline"> Batal </Button>
                                 </Link>
                                 <Button type="submit" :disabled="form.processing">
-                                    <Save class="h-4 w-4 mr-2" />
+                                    <Save class="mr-2 h-4 w-4" />
                                     Simpan Perubahan
                                 </Button>
                             </div>

@@ -1,5 +1,4 @@
-import { now } from "@vueuse/core";
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
 
 interface InformationState {
     borrowerId: number | null;
@@ -30,8 +29,8 @@ interface AspectState {
     aspectName: string;
     aspectCode: string;
     options: {
-        id: number,
-        option_text: string,
+        id: number;
+        option_text: string;
         score: number;
     }[];
     selectedOptionId: number | null;
@@ -52,8 +51,8 @@ interface FormState {
     activeStep: number;
     totalSteps: number;
     informationBorrower: InformationState;
-    facilitiesBorrower: FacilityState[]; // Menyimpan tiap ROW pada form fasilitas
-    aspectsBorrower: AspectState[]; // Menyimpan tiap PERTANYAAN pada form aspek
+    facilitiesBorrower: FacilityState[];
+    aspectsBorrower: AspectState[];
     reportMeta: ReportMetaData;
     existingBorrowerId: number | null;
     existingBorrowerName: string;
@@ -67,7 +66,7 @@ const initialInformationBorrower = (): InformationState => ({
     businessField: '',
     borrowerBusiness: '',
     collectibility: 1,
-    restructuring: false, 
+    restructuring: false,
 });
 
 const initialFacilitiesBorrower = (): FacilityState => ({
@@ -102,13 +101,26 @@ export const useFormStore = defineStore('form', {
     actions: {
         nextStep() {
             if (this.activeStep < this.totalSteps) {
-                this.activeStep++
+                this.activeStep++;
             }
         },
         prevStep() {
             if (this.activeStep > 1) {
                 this.activeStep--;
             }
-        }
-    }
-})
+        },
+        updateInformationBorrower(payload: InformationState) {
+            this.informationBorrower = { ...this.informationBorrower, ...payload };
+        },
+        updateAspectsBorrower(aspects: AspectState[]) {
+            this.aspectsBorrower = aspects;
+        },
+        updateAspectAnswer(questionId: number, selectedOptionId: number | null, notes: string | null) {
+            const aspectIndex = this.aspectsBorrower.findIndex(aspect => aspect.questionId === questionId);
+            if (aspectIndex !== -1) {
+                this.aspectsBorrower[aspectIndex].selectedOptionId = selectedOptionId;
+                this.aspectsBorrower[aspectIndex].notes = notes;
+            }
+        },
+    },
+});

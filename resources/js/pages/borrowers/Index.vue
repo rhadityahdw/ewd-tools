@@ -13,8 +13,6 @@ const props = defineProps({
 
 const borrowers = props.borrowers?.data;
 
-console.log(borrowers);
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',

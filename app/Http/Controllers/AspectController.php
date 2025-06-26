@@ -49,7 +49,7 @@ class AspectController extends Controller
 
     public function show(Aspect $aspect)
     {
-        $aspect->load(['versions.questionsVersions.options', 'versions.questionsVersions.question.visibilityRules']);
+        $aspect->load(['versions.questionVersions.options', 'versions.questionVersions.question.visibilityRules']);
 
         return Inertia::render('aspects/Show', [
             'aspect' => new AspectResource($aspect),
@@ -58,7 +58,7 @@ class AspectController extends Controller
 
     public function edit(Aspect $aspect)
     {
-        $aspect->load(['versions.questionsVersions.options', 'versions.questionsVersions.question.visibilityRules']);
+        $aspect->load(['versions.questionVersions.options', 'versions.questionVersions.question.visibilityRules']);
 
         return Inertia::render('aspects/Edit', [
             'aspect' => new AspectResource($aspect),

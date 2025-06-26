@@ -1,22 +1,35 @@
 <script setup lang="ts">
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useFormStore } from '@/stores/formStore';
+import type { BorrowerFacility } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Plus, Trash2 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { POSITION, useToast } from 'vue-toastification';
 
-const toast = useToast();
+interface Props {
+    facilities?: BorrowerFacility[];
+}
 
-const facilityTypes = ref<string[]>([]);
-const borrowerDetail = ref({
-    purpose: 'both',
+const props = withDefaults(defineProps<Props>(), {
+    facilities: () => [],
 });
+
+const toast = useToast();
+const formStore = useFormStore();
 
 const isSubmitting = ref(false);
 
+// Get purpose from formStore to determine which tables to show
+const purpose = computed(() => formStore.informationBorrower.purpose);
+const showKieTable = computed(() => purpose.value === 'kie' || purpose.value === 'both');
+const showKmkeTable = computed(() => purpose.value === 'kmke' || purpose.value === 'both');
+
+// Initialize facilities from store or props
 const kieRows = ref([
     {
+        id: null,
         name: 'KIE 1',
         limit: 0,
         outstanding: 0,
@@ -24,12 +37,13 @@ const kieRows = ref([
         principalArrears: 0,
         interestArrears: 0,
         pdo: 0,
-        dueDate: 0,
+        maturityDate: new Date().toISOString().split('T')[0],
     },
 ]);
 
 const kmkeRows = ref([
     {
+        id: null,
         name: 'KMKE 1',
         limit: 0,
         outstanding: 0,
@@ -37,13 +51,103 @@ const kmkeRows = ref([
         principalArrears: 0,
         interestArrears: 0,
         pdo: 0,
-        dueDate: 0,
+        maturityDate: new Date().toISOString().split('T')[0],
     },
 ]);
+
+// Initialize form with Inertia
+const form = useForm({
+    facilities: [] as any[],
+});
+
+// Load existing facilities from store on mount
+onMounted(() => {
+    if (formStore.facilitiesBorrower.length > 0) {
+        const existingFacilities = formStore.facilitiesBorrower;
+
+        // Separate KIE and KMKE facilities
+        const kieFacilities = existingFacilities.filter((f) => f.name.toLowerCase().includes('kie'));
+        const kmkeFacilities = existingFacilities.filter((f) => f.name.toLowerCase().includes('kmke'));
+
+        if (kieFacilities.length > 0) {
+            (kieRows as any).value = kieFacilities.map((f) => ({
+                id: f.id,
+                name: f.name,
+                limit: f.limit,
+                outstanding: f.outstanding,
+                interestRate: f.interestRate,
+                principalArrears: f.principalArrears,
+                interestArrears: f.interestArrears,
+                pdo: f.pdo,
+                maturityDate: f.maturityDate instanceof Date ? f.maturityDate.toISOString().split('T')[0] : f.maturityDate,
+            }));
+        }
+
+        if (kmkeFacilities.length > 0) {
+            (kmkeRows as any).value = kmkeFacilities.map((f) => ({
+                id: f.id,
+                name: f.name,
+                limit: f.limit,
+                outstanding: f.outstanding,
+                interestRate: f.interestRate,
+                principalArrears: f.principalArrears,
+                interestArrears: f.interestArrears,
+                pdo: f.pdo,
+                maturityDate: f.maturityDate instanceof Date ? f.maturityDate.toISOString().split('T')[0] : f.maturityDate,
+            }));
+        }
+    }
+});
+
+// Watch for changes and update store
+watch(
+    [kieRows, kmkeRows],
+    () => {
+        const allFacilities = [];
+
+        // Only include KIE facilities if they should be shown
+        if (showKieTable.value) {
+            allFacilities.push(
+                ...kieRows.value.map((row) => ({
+                    id: row.id,
+                    name: row.name,
+                    limit: Number(row.limit),
+                    outstanding: Number(row.outstanding),
+                    interestRate: Number(row.interestRate),
+                    principalArrears: Number(row.principalArrears),
+                    interestArrears: Number(row.interestArrears),
+                    pdo: Number(row.pdo),
+                    maturityDate: new Date(row.maturityDate),
+                })),
+            );
+        }
+
+        // Only include KMKE facilities if they should be shown
+        if (showKmkeTable.value) {
+            allFacilities.push(
+                ...kmkeRows.value.map((row) => ({
+                    id: row.id,
+                    name: row.name,
+                    limit: Number(row.limit),
+                    outstanding: Number(row.outstanding),
+                    interestRate: Number(row.interestRate),
+                    principalArrears: Number(row.principalArrears),
+                    interestArrears: Number(row.interestArrears),
+                    pdo: Number(row.pdo),
+                    maturityDate: new Date(row.maturityDate),
+                })),
+            );
+        }
+
+        formStore.facilitiesBorrower = allFacilities;
+    },
+    { deep: true },
+);
 
 const addKieRow = () => {
     const newIndex = kieRows.value.length + 1;
     kieRows.value.push({
+        id: null,
         name: `KIE ${newIndex}`,
         limit: 0,
         outstanding: 0,
@@ -51,7 +155,7 @@ const addKieRow = () => {
         principalArrears: 0,
         interestArrears: 0,
         pdo: 0,
-        dueDate: 0,
+        maturityDate: new Date().toISOString().split('T')[0],
     });
 };
 
@@ -67,6 +171,7 @@ const removeKieRow = (index: number) => {
 const addKmkeRow = () => {
     const newIndex = kmkeRows.value.length + 1;
     kmkeRows.value.push({
+        id: null,
         name: `KMKE ${newIndex}`,
         limit: 0,
         outstanding: 0,
@@ -74,7 +179,7 @@ const addKmkeRow = () => {
         principalArrears: 0,
         interestArrears: 0,
         pdo: 0,
-        dueDate: 0,
+        maturityDate: new Date().toISOString().split('T')[0],
     });
 };
 
@@ -87,341 +192,501 @@ const removeKmkeRow = (index: number) => {
     }
 };
 
-const submit = () => {
+// Submit function for external call
+const submitForm = async () => {
     isSubmitting.value = true;
 
-    // Mengambil data dari fasilitas yang dipilih (misalnya KIE pertama)
-    if (kieRows.value.length > 0) {
-        const selectedFacility = kieRows.value[0];
+    try {
+        // Prepare facilities data based on purpose
+        const facilitiesData = [];
 
-        // Mengisi form dengan data dari fasilitas
-        form.facility_name = selectedFacility.name;
-        form.limit = selectedFacility.limit;
-        form.outstanding = selectedFacility.outstanding;
-        form.interest_rate = selectedFacility.interestRate;
-        form.principal_arrears = selectedFacility.principalArrears;
-        form.interest_arrears = selectedFacility.interestArrears;
-        form.pdo_days = selectedFacility.pdo;
-        form.maturity_date = new Date().toISOString().split('T')[0]; // Format tanggal YYYY-MM-DD
+        if (showKieTable.value) {
+            facilitiesData.push(
+                ...kieRows.value.map((row) => ({
+                    facility_name: row.name,
+                    limit: Number(row.limit),
+                    outstanding: Number(row.outstanding),
+                    interest_rate: Number(row.interestRate),
+                    principal_arrears: Number(row.principalArrears),
+                    interest_arrears: Number(row.interestArrears),
+                    pdo_days: Number(row.pdo),
+                    maturity_date: row.maturityDate,
+                })),
+            );
+        }
+
+        if (showKmkeTable.value) {
+            facilitiesData.push(
+                ...kmkeRows.value.map((row) => ({
+                    facility_name: row.name,
+                    limit: Number(row.limit),
+                    outstanding: Number(row.outstanding),
+                    interest_rate: Number(row.interestRate),
+                    principal_arrears: Number(row.principalArrears),
+                    interest_arrears: Number(row.interestArrears),
+                    pdo_days: Number(row.pdo),
+                    maturity_date: row.maturityDate,
+                })),
+            );
+        }
+
+        form.facilities = facilitiesData;
+
+        await new Promise((resolve, reject) => {
+            form.post(route('borrower-facilities.store'), {
+                onSuccess: () => {
+                    toast.success('Data fasilitas berhasil disimpan', {
+                        timeout: 3000,
+                        position: POSITION.TOP_RIGHT,
+                        closeOnClick: true,
+                    });
+                    resolve(true);
+                },
+                onError: (errors) => {
+                    toast.error('Terjadi kesalahan saat menyimpan data', {
+                        timeout: 3000,
+                        position: POSITION.TOP_RIGHT,
+                        closeOnClick: true,
+                    });
+                    console.error(errors);
+                    reject(errors);
+                },
+            });
+        });
+    } catch (error) {
+        console.error('Submit error:', error);
+    } finally {
+        isSubmitting.value = false;
     }
-
-    // Kirim data ke endpoint menggunakan Inertia
-    form.post(route('forms.facility'), {
-        onSuccess: () => {
-            isSubmitting.value = false;
-            toast.success('Data fasilitas berhasil disimpan', {
-                timeout: 3000,
-                position: POSITION.TOP_RIGHT,
-                closeOnClick: true,
-            });
-        },
-        onError: (errors) => {
-            isSubmitting.value = false;
-            toast.error('Terjadi kesalahan saat menyimpan data', {
-                timeout: 3000,
-                position: POSITION.TOP_RIGHT,
-                closeOnClick: true,
-            });
-            console.error(errors);
-        },
-    });
 };
 
-// Menghitung total limit KIE
+// Computed properties for KIE totals
 const totalKieLimit = computed(() => {
-    return kieRows.value.reduce((sum, row) => sum + Number(row.limit), 0);
+    return kieRows.value.reduce((sum, row) => sum + Number(row.limit || 0), 0);
 });
 
-// Menghitung total outstanding KIE
 const totalKieOutstanding = computed(() => {
-    return kieRows.value.reduce((sum, row) => sum + Number(row.outstanding), 0);
+    return kieRows.value.reduce((sum, row) => sum + Number(row.outstanding || 0), 0);
 });
 
-// Menghitung total interest rate KIE (rata-rata)
 const avgKieInterestRate = computed(() => {
-    if (kieRows.value.length === 0) return 0;
-    const total = kieRows.value.reduce((sum, row) => sum + Number(row.interestRate), 0);
+    if (kieRows.value.length === 0) return '0.00';
+    const total = kieRows.value.reduce((sum, row) => sum + Number(row.interestRate || 0), 0);
     return (total / kieRows.value.length).toFixed(2);
 });
 
-// Menghitung total principal arrears KIE
 const totalKiePrincipalArrears = computed(() => {
-    return kieRows.value.reduce((sum, row) => sum + Number(row.principalArrears), 0);
+    return kieRows.value.reduce((sum, row) => sum + Number(row.principalArrears || 0), 0);
 });
 
-// Menghitung total interest arrears KIE
 const totalKieInterestArrears = computed(() => {
-    return kieRows.value.reduce((sum, row) => sum + Number(row.interestArrears), 0);
+    return kieRows.value.reduce((sum, row) => sum + Number(row.interestArrears || 0), 0);
 });
 
-// Menghitung total PDO KIE (rata-rata)
 const avgKiePdo = computed(() => {
     if (kieRows.value.length === 0) return 0;
-    const total = kieRows.value.reduce((sum, row) => sum + Number(row.pdo), 0);
+    const total = kieRows.value.reduce((sum, row) => sum + Number(row.pdo || 0), 0);
     return Math.round(total / kieRows.value.length);
 });
 
-// Menghitung total limit KMKE
+// Computed properties for KMKE totals
 const totalKmkeLimit = computed(() => {
-    return kmkeRows.value.reduce((sum, row) => sum + Number(row.limit), 0);
+    return kmkeRows.value.reduce((sum, row) => sum + Number(row.limit || 0), 0);
 });
 
-// Menghitung total outstanding KMKE
 const totalKmkeOutstanding = computed(() => {
-    return kmkeRows.value.reduce((sum, row) => sum + Number(row.outstanding), 0);
+    return kmkeRows.value.reduce((sum, row) => sum + Number(row.outstanding || 0), 0);
 });
 
-// Menghitung total interest rate KMKE (rata-rata)
 const avgKmkeInterestRate = computed(() => {
-    if (kmkeRows.value.length === 0) return 0;
-    const total = kmkeRows.value.reduce((sum, row) => sum + Number(row.interestRate), 0);
+    if (kmkeRows.value.length === 0) return '0.00';
+    const total = kmkeRows.value.reduce((sum, row) => sum + Number(row.interestRate || 0), 0);
     return (total / kmkeRows.value.length).toFixed(2);
 });
 
-// Menghitung total principal arrears KMKE
 const totalKmkePrincipalArrears = computed(() => {
-    return kmkeRows.value.reduce((sum, row) => sum + Number(row.principalArrears), 0);
+    return kmkeRows.value.reduce((sum, row) => sum + Number(row.principalArrears || 0), 0);
 });
 
-// Menghitung total interest arrears KMKE
 const totalKmkeInterestArrears = computed(() => {
-    return kmkeRows.value.reduce((sum, row) => sum + Number(row.interestArrears), 0);
+    return kmkeRows.value.reduce((sum, row) => sum + Number(row.interestArrears || 0), 0);
 });
 
-// Menghitung total PDO KMKE (rata-rata)
 const avgKmkePdo = computed(() => {
     if (kmkeRows.value.length === 0) return 0;
-    const total = kmkeRows.value.reduce((sum, row) => sum + Number(row.pdo), 0);
+    const total = kmkeRows.value.reduce((sum, row) => sum + Number(row.pdo || 0), 0);
     return Math.round(total / kmkeRows.value.length);
 });
 
-const form = useForm({
-    facility_name: '',
-    limit: 0,
-    outstanding: 0,
-    interest_rate: 0,
-    principal_arrears: 0,
-    interest_arrears: 0,
-    pdo_days: 0,
-    maturity_date: '',
-});
-
-const handleSubmit = () => {
-    form.post(route('forms.facility'), {
-        onSuccess: () => {
-            isSubmitting.value = false;
-        },
-    });
+// Format currency helper
+const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('id-ID').format(value);
 };
+
+// Expose form and submit function for parent component
+defineExpose({
+    form,
+    submitForm,
+    isSubmitting,
+});
 </script>
 
 <template>
     <Head title="Fasilitas Debitur" />
 
     <div class="container mx-auto px-4 py-8">
-        <form @submiy.prevent="handleSubmit">
-            <div class="mx-4 overflow-x-auto sm:-mx-6">
-                <div class="inline-block min-w-full align-middle">
-                    <Table class="min-w-full border border-gray-200">
-                        <TableHeader class="bg-muted">
-                            <TableRow class="border-b border-gray-200">
-                                <TableHead
-                                    class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    rowspan="2"
-                                    >Rincian Fasilitas</TableHead
-                                >
-                                <TableHead
-                                    class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    rowspan="2"
-                                    >Limit</TableHead
-                                >
-                                <TableHead
-                                    class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    rowspan="2"
-                                    >Outstanding</TableHead
-                                >
-                                <TableHead
-                                    class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    rowspan="2"
-                                    >Suku Bunga Efektif (%)</TableHead
-                                >
-                                <TableHead
-                                    class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    colspan="2"
-                                    >Tunggakan</TableHead
-                                >
-                                <TableHead
-                                    class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    rowspan="2"
-                                    >PDO (Hari)</TableHead
-                                >
-                                <TableHead
-                                    class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    rowspan="2"
-                                    >Jatuh Tempo</TableHead
-                                >
-                                <TableHead
-                                    class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    rowspan="2"
-                                    >Aksi</TableHead
-                                >
-                            </TableRow>
-                            <TableRow class="border-b border-gray-200">
-                                <TableHead class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    >Pokok</TableHead
-                                >
-                                <TableHead class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
-                                    >Bunga</TableHead
-                                >
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow>
+        <!-- Purpose Information -->
+        <div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <h3 class="mb-2 text-lg font-semibold text-gray-900">Tujuan Kredit</h3>
+            <p class="text-sm text-gray-600">
+                <span class="font-medium">Dipilih:</span>
+                <span class="capitalize">{{ purpose === 'both' ? 'KIE dan KMKE' : purpose.toUpperCase() }}</span>
+            </p>
+        </div>
+
+        <div class="mx-4 overflow-x-auto sm:-mx-6">
+            <div class="inline-block min-w-full align-middle">
+                <Table class="min-w-full border border-gray-200">
+                    <TableHeader class="bg-muted">
+                        <TableRow class="border-b border-gray-200">
+                            <TableHead
+                                class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                rowspan="2"
+                                >Rincian Fasilitas</TableHead
+                            >
+                            <TableHead
+                                class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                rowspan="2"
+                                >Limit (Juta)</TableHead
+                            >
+                            <TableHead
+                                class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                rowspan="2"
+                                >Outstanding (Juta)</TableHead
+                            >
+                            <TableHead
+                                class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                rowspan="2"
+                                >Suku Bunga Efektif (%)</TableHead
+                            >
+                            <TableHead
+                                class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                colspan="2"
+                                >Tunggakan (Juta)</TableHead
+                            >
+                            <TableHead
+                                class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                rowspan="2"
+                                >PDO (Hari)</TableHead
+                            >
+                            <TableHead
+                                class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                rowspan="2"
+                                >Jatuh Tempo</TableHead
+                            >
+                            <TableHead
+                                class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                rowspan="2"
+                                >Aksi</TableHead
+                            >
+                        </TableRow>
+                        <TableRow class="border-b border-gray-200">
+                            <TableHead class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                >Pokok</TableHead
+                            >
+                            <TableHead class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-2 md:text-base"
+                                >Bunga</TableHead
+                            >
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <!-- KIE Section - Only show if purpose is 'kie' or 'both' -->
+                        <template v-if="showKieTable">
+                            <!-- KIE Summary Row -->
+                            <TableRow class="bg-blue-50">
                                 <TableCell
                                     class="border border-gray-200 px-2 py-2 text-center text-xs font-medium sm:text-sm md:px-4 md:py-3 md:text-base"
                                     >KIE (IDR Juta)</TableCell
                                 >
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    totalKieLimit
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    totalKieOutstanding
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base"
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ formatCurrency(totalKieLimit) }}</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ formatCurrency(totalKieOutstanding) }}</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
                                     >{{ avgKieInterestRate }}%</TableCell
                                 >
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    totalKiePrincipalArrears
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    totalKieInterestArrears
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    avgKiePdo
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    avgKieInterestRate
-                                }}</TableCell>
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ formatCurrency(totalKiePrincipalArrears) }}</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ formatCurrency(totalKieInterestArrears) }}</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ avgKiePdo }}</TableCell
+                                >
+                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >-</TableCell
+                                >
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">
                                     <button
                                         type="button"
                                         @click="addKieRow"
                                         class="rounded-md bg-green-600 px-2 py-1 text-white shadow-none transition-colors hover:bg-green-700 sm:px-3 sm:py-1.5"
+                                        title="Tambah KIE"
                                     >
                                         <Plus class="h-3 w-3 sm:h-4 sm:w-4" />
                                     </button>
                                 </TableCell>
                             </TableRow>
+
+                            <!-- KIE Detail Rows -->
                             <TableRow v-for="(row, index) in kieRows" :key="`kie-${index}`">
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">
-                                    <Input type="text" v-model="row.name" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="text"
+                                        v-model="row.name"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        placeholder="Nama fasilitas"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.limit" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.limit"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.outstanding" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.outstanding"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.interestRate" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.interestRate"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.principalArrears" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.principalArrears"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.interestArrears" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.interestArrears"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.pdo" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input type="number" v-model.number="row.pdo" class="w-full text-xs sm:text-sm md:text-base" min="0" />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.dueDate" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input type="date" v-model="row.maturityDate" class="w-full text-xs sm:text-sm md:text-base" />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
                                     <button
                                         type="button"
                                         @click="removeKieRow(index)"
-                                        class="rounded-md bg-red-600 px-2 py-1 text-white shadow-none transition-colors hover:bg-red-700 sm:px-3 sm:py-1.5"
+                                        :disabled="kieRows.length <= 1"
+                                        class="rounded-md bg-red-600 px-2 py-1 text-white shadow-none transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400 sm:px-3 sm:py-1.5"
+                                        title="Hapus KIE"
                                     >
                                         <Trash2 class="h-3 w-3 sm:h-4 sm:w-4" />
                                     </button>
                                 </TableCell>
                             </TableRow>
-                            <TableRow>
+                        </template>
+
+                        <!-- KMKE Section - Only show if purpose is 'kmke' or 'both' -->
+                        <template v-if="showKmkeTable">
+                            <!-- KMKE Summary Row -->
+                            <TableRow class="bg-green-50">
                                 <TableCell
                                     class="border border-gray-200 px-2 py-2 text-center text-xs font-medium sm:text-sm md:px-4 md:py-3 md:text-base"
                                     >KMKE (IDR Juta)</TableCell
                                 >
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    totalKmkeLimit
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    totalKmkeOutstanding
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    avgKmkeInterestRate
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    totalKmkePrincipalArrears
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    totalKmkeInterestArrears
-                                }}</TableCell>
-                                <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">{{
-                                    avgKmkePdo
-                                }}</TableCell>
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ formatCurrency(totalKmkeLimit) }}</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ formatCurrency(totalKmkeOutstanding) }}</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ avgKmkeInterestRate }}%</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ formatCurrency(totalKmkePrincipalArrears) }}</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ formatCurrency(totalKmkeInterestArrears) }}</TableCell
+                                >
+                                <TableCell
+                                    class="border border-gray-200 px-2 py-2 text-center text-xs font-semibold sm:text-sm md:px-4 md:py-3 md:text-base"
+                                    >{{ avgKmkePdo }}</TableCell
+                                >
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base"
-                                    >5.000</TableCell
+                                    >-</TableCell
                                 >
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
                                     <button
                                         type="button"
                                         @click="addKmkeRow"
                                         class="rounded-md bg-green-600 px-2 py-1 text-white shadow-none transition-colors hover:bg-green-700 sm:px-3 sm:py-1.5"
+                                        title="Tambah KMKE"
                                     >
                                         <Plus class="h-3 w-3 sm:h-4 sm:w-4" />
                                     </button>
                                 </TableCell>
                             </TableRow>
+
+                            <!-- KMKE Detail Rows -->
                             <TableRow v-for="(row, index) in kmkeRows" :key="`kmke-${index}`">
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center text-xs sm:text-sm md:px-4 md:py-3 md:text-base">
-                                    <Input type="text" v-model="row.name" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="text"
+                                        v-model="row.name"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        placeholder="Nama fasilitas"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.limit" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.limit"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.outstanding" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.outstanding"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.interestRate" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.interestRate"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.principalArrears" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.principalArrears"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.interestArrears" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input
+                                        type="number"
+                                        v-model.number="row.interestArrears"
+                                        class="w-full text-xs sm:text-sm md:text-base"
+                                        min="0"
+                                        step="0.01"
+                                    />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.pdo" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input type="number" v-model.number="row.pdo" class="w-full text-xs sm:text-sm md:text-base" min="0" />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
-                                    <Input type="number" v-model="row.dueDate" class="w-full text-xs sm:text-sm md:text-base" />
+                                    <Input type="date" v-model="row.maturityDate" class="w-full text-xs sm:text-sm md:text-base" />
                                 </TableCell>
                                 <TableCell class="border border-gray-200 px-2 py-2 text-center md:px-4 md:py-3">
                                     <button
                                         type="button"
                                         @click="removeKmkeRow(index)"
-                                        class="rounded-md bg-red-600 px-2 py-1 text-white shadow-none transition-colors hover:bg-red-700 sm:px-3 sm:py-1.5"
+                                        :disabled="kmkeRows.length <= 1"
+                                        class="rounded-md bg-red-600 px-2 py-1 text-white shadow-none transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-400 sm:px-3 sm:py-1.5"
+                                        title="Hapus KMKE"
                                     >
                                         <Trash2 class="h-3 w-3 sm:h-4 sm:w-4" />
                                     </button>
                                 </TableCell>
                             </TableRow>
-                        </TableBody>
-                    </Table>
+                        </template>
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+
+        <!-- Summary Information - Only show relevant summaries -->
+        <div class="mt-6 grid grid-cols-1 gap-4" :class="{ 'md:grid-cols-2': showKieTable && showKmkeTable }">
+            <div v-if="showKieTable" class="rounded-lg border border-gray-200 p-4">
+                <h3 class="mb-3 text-lg font-semibold text-gray-900">Ringkasan KIE</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Total Limit:</span>
+                        <span class="font-medium">Rp {{ formatCurrency(totalKieLimit) }} Juta</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Total Outstanding:</span>
+                        <span class="font-medium">Rp {{ formatCurrency(totalKieOutstanding) }} Juta</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Rata-rata Suku Bunga:</span>
+                        <span class="font-medium">{{ avgKieInterestRate }}%</span>
+                    </div>
                 </div>
             </div>
-        </form>
+
+            <div v-if="showKmkeTable" class="rounded-lg border border-gray-200 p-4">
+                <h3 class="mb-3 text-lg font-semibold text-gray-900">Ringkasan KMKE</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Total Limit:</span>
+                        <span class="font-medium">Rp {{ formatCurrency(totalKmkeLimit) }} Juta</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Total Outstanding:</span>
+                        <span class="font-medium">Rp {{ formatCurrency(totalKmkeOutstanding) }} Juta</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Rata-rata Suku Bunga:</span>
+                        <span class="font-medium">{{ avgKmkeInterestRate }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </template>

@@ -1,14 +1,17 @@
-<script setup lang="ts">
-import { Label } from '@/components/ui/label';
+<script setup>
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Stepper, StepperItem, StepperSeparator, StepperTitle, StepperTrigger } from '@/components/ui/stepper';
-import { useFormStore } from '@/stores/formStore';
-import { Calculator, IdCard, ListCheck } from 'lucide-vue-next';
-import InformationForm from '@/pages/Forms/InformationForm.vue';
-import FacilityForm from '@/pages/Forms/FacilityForm.vue';
 import AspectForm from '@/pages/Forms/AspectForm.vue';
+import FacilityForm from '@/pages/Forms/FacilityForm.vue';
+import InformationForm from '@/pages/Forms/InformationForm.vue';
+import { useFormStore } from '@/stores/formStore';
+import { Link, useForm, router } from '@inertiajs/vue3';
+import { Calculator, IdCard, ListCheck } from 'lucide-vue-next';
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { useToast } from 'vue-toastification';
+
+const toast = useToast();
 
 // Tambahkan props
 const props = defineProps({
@@ -27,6 +30,70 @@ const props = defineProps({
 });
 
 const formState = useFormStore();
+
+// Form untuk submit semua data
+const form = useForm({
+    informationBorrower: {},
+    facilitiesBorrower: [],
+    aspectsBorrower: [],
+    reportMeta: {},
+});
+
+// Fungsi untuk submit semua data ke backend
+const submitAllData = async () => {
+    try {
+        // Kumpulkan data dari formStore
+        form.informationBorrower = formState.informationBorrower;
+        form.facilitiesBorrower = formState.facilitiesBorrower;
+        form.aspectsBorrower = formState.aspectsBorrower;
+        form.reportMeta = formState.reportMeta;
+
+        // Validasi data
+        if (!form.informationBorrower.borrowerId) {
+            toast.error('Data informasi debitur belum lengkap');
+            return;
+        }
+
+        if (form.facilitiesBorrower.length === 0) {
+            toast.error('Data fasilitas debitur belum diisi');
+            return;
+        }
+
+        if (form.aspectsBorrower.length === 0) {
+            toast.error('Data aspek debitur belum diisi');
+            return;
+        }
+
+        // Submit ke backend
+        form.post(route('forms.submit'), {
+            onSuccess: (page) => {
+                toast.success('Data berhasil disimpan');
+                // Redirect ke summary dengan report ID
+                const reportId = page.props.reportId || page.props.flash?.reportId;
+                if (reportId) {
+                    router.visit(route('summary', { reportId }));
+                } else {
+                    router.visit(route('dashboard'));
+                }
+            },
+            onError: (errors) => {
+                console.error('Submit errors:', errors);
+                if (typeof errors === 'object' && errors !== null) {
+                    const errorMessages = Object.values(errors).flat();
+                    toast.error(errorMessages.join(', ') || 'Gagal menyimpan data');
+                } else {
+                    toast.error('Gagal menyimpan data');
+                }
+            },
+            onFinish: () => {
+                // Reset processing state if needed
+            }
+        });
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        toast.error('Terjadi kesalahan yang tidak terduga');
+    }
+};
 
 const steps = [
     {
@@ -141,14 +208,14 @@ const currentProps = computed(() => currentStep.value.props || {});
                     >Next</Button
                 >
 
-                <Link :href="route('summary')">
-                    <Button
-                        v-if="formState.activeStep === formState.totalSteps"
-                        @click=""
-                        class="w-full min-w-24 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3"
-                        >Submit</Button
-                    >
-                </Link>
+                <Button
+                    v-if="formState.activeStep === formState.totalSteps"
+                    @click="submitAllData"
+                    :disabled="form.processing"
+                    class="w-full min-w-24 sm:w-auto lg:min-w-32 lg:px-8 lg:py-3"
+                >
+                    {{ form.processing ? 'Menyimpan...' : 'Submit' }}
+                </Button>
             </div>
         </div>
     </div>

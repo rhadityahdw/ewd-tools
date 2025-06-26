@@ -25,10 +25,8 @@ class QuestionVersionResource extends JsonResource
             'min_score' => (float) $this->min_score,
             'is_mandatory' => (bool) $this->is_mandatory,
             'effective_from' => $this->effective_from,
-            'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
-            'visibility_rules' => VisibilityRuleResource::collection($this->whenLoaded('question', function () {
-                return $this->question->relationLoaded('visibilityRules') ? $this->question->visibilityRules : [];
-            })),
+            'options' => QuestionOptionResource::collection($this->options),
+            'visibility_rules' => VisibilityRuleResource::collection($this->question->visibilityRules),
         ];
     }
 }

@@ -1,6 +1,20 @@
 <script setup lang="ts">
 import { Label } from '@/components/ui/label';
 import { ref } from 'vue';
+import { useToast } from 'vue-toastification';
+
+const toast = useToast();
+
+const props = defineProps({
+    reportData: {
+        type: Object,
+        required: true,
+    },
+    reportId: {
+        type: Number,
+        required: true,
+    },
+});
 
 const formData = ref({
     borrowerName: 'BARASENTOSA LESTARI',

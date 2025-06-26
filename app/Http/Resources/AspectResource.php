@@ -17,8 +17,12 @@ class AspectResource extends JsonResource
         return [
             'id' => $this->id,
             'code' => $this->code,
-            'latest_version' => new AspectVersionResource($this->whenLoaded('latestVersion')),
-            'versions' => AspectVersionResource::collection($this->whenLoaded('versions')),
+            'name' => $this->latestVersion->name,
+            'description' => $this->latestVersion->description,
+            'version_number' => $this->latestVersion->version_number,
+            'effective_date' => $this->latestVersion->effective_from->format('Y-m-d H:i:s'),
+            'questions_count' => $this->latestVersion->questionVersions->count(),
+            'latest_version' => new AspectVersionResource($this->latestVersion),
         ];
     }
 }

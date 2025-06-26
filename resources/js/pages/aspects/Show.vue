@@ -1,41 +1,17 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Head, Link } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { BreadcrumbItem } from '@/types';
-import { ArrowLeft, Edit, CheckCircle, XCircle } from 'lucide-vue-next';
+import { Head, Link } from '@inertiajs/vue3';
+import { ArrowLeft, CheckCircle, Edit, XCircle } from 'lucide-vue-next';
 
-interface QuestionOption {
-    id: number;
-    option_text: string;
-    score: number;
-}
+const props = defineProps({
+    aspect: Object,
+});
 
-interface Question {
-    id: number;
-    question_text: string;
-    weight: number;
-    max_score: number;
-    min_score: number;
-    is_mandatory: boolean;
-    version_number?: number;
-    options: QuestionOption[];
-}
-
-interface AspectData {
-    id: number;
-    name: string;
-    code: string;
-    description: string;
-    version: number;
-    questions: Question[];
-}
-
-const props = defineProps<{
-    aspect: AspectData
-}>();
+const aspect = props.aspect?.data;
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -47,42 +23,47 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: route('aspects.index'),
     },
     {
-        title: props.aspect.name,
-        href: route('aspects.show', props.aspect.id),
-    }
+        title: aspect.name,
+        href: route('aspects.show', aspect.id),
+    },
 ];
 </script>
 
 <template>
-    <Head :title="`Aspek: ${aspect.name}`" />
+    <Head :title="`${aspect.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div class="py-6 md:py-12">
+            <div class="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:max-w-7xl lg:px-8">
                 <!-- Detail Aspek -->
-                <Card class="mb-8">
+                <Card>
                     <CardHeader class="flex flex-row items-center justify-between">
                         <div>
-                            <CardTitle class="text-xl md:text-2xl font-bold">
-                                {{ aspect.name }}
+                            <CardTitle class="text-xl font-bold md:text-2xl">
+                                {{ aspect.latest_version.name }}
                             </CardTitle>
-                            <div class="flex items-center gap-2 mt-2">
+                            <div class="mt-2 flex items-center gap-2">
                                 <Badge variant="outline">{{ aspect.code }}</Badge>
-                                <Badge variant="secondary">v{{ aspect.version }}</Badge>
+                                <Badge variant="secondary">v{{ aspect.latest_version.version_number }}</Badge>
                             </div>
                         </div>
-                        <Link :href="route('aspects.edit', aspect.id)">
-                            <Button variant="outline">
-                                <Edit class="w-4 h-4 mr-2" />
-                                Edit Aspek
-                            </Button>
-                        </Link>
+                        <div class="flex gap-2">
+                            <Link :href="route('aspects.edit', aspect.id)">
+                                <Button>
+                                    <Edit class="h-4 w-4" />
+                                    Edit Aspek
+                                </Button>
+                            </Link>
+                            <Link :href="route('aspects.index')">
+                                <Button type="button" variant="outline">Kembali</Button>
+                            </Link>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div class="space-y-4">
                             <div>
                                 <h3 class="text-lg font-medium">Deskripsi</h3>
-                                <p class="mt-1 text-gray-600">{{ aspect.description || 'Tidak ada deskripsi' }}</p>
+                                <p class="mt-1 text-gray-600">{{ aspect.latest_version.description || 'Tidak ada deskripsi' }}</p>
                             </div>
                         </div>
                     </CardContent>
@@ -91,46 +72,48 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <!-- Daftar Pertanyaan -->
                 <Card>
                     <CardHeader>
-                        <CardTitle class="text-lg font-bold">
-                            Daftar Pertanyaan ({{ aspect.questions.length }})
-                        </CardTitle>
+                        <CardTitle class="text-lg font-bold"> Daftar Pertanyaan ({{ aspect.latest_version.questions.length }}) </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="aspect.questions.length === 0" class="text-center py-8 text-gray-500">
+                        <div v-if="aspect.latest_version.questions.length === 0" class="py-8 text-center text-gray-500">
                             Belum ada pertanyaan untuk aspek ini.
                         </div>
                         <div v-else class="space-y-6">
-                            <div v-for="(question, index) in aspect.questions" :key="question.id" class="border p-6 rounded-lg bg-gray-50 dark:bg-gray-800">
+                            <div
+                                v-for="(question, index) in aspect.latest_version.questions"
+                                :key="question.id"
+                                class="rounded-lg border bg-gray-50 p-6 dark:bg-gray-800"
+                            >
                                 <div class="space-y-4">
                                     <!-- Question Header -->
-                                    <div class="flex justify-between items-start">
+                                    <div class="flex items-start justify-between">
                                         <div class="flex-1">
-                                            <div class="flex items-center gap-2 mb-2">
-                                                <h4 class="font-semibold text-lg">Pertanyaan {{ index + 1 }}</h4>
+                                            <div class="mb-2 flex items-center gap-2">
+                                                <h4 class="text-lg font-semibold">Pertanyaan {{ index + 1 }}</h4>
                                                 <Badge v-if="question.is_mandatory" variant="destructive" class="text-xs">
-                                                    <CheckCircle class="w-3 h-3 mr-1" />
+                                                    <CheckCircle class="mr-1 h-3 w-3" />
                                                     Wajib
                                                 </Badge>
                                                 <Badge v-else variant="secondary" class="text-xs">
-                                                    <XCircle class="w-3 h-3 mr-1" />
+                                                    <XCircle class="mr-1 h-3 w-3" />
                                                     Opsional
                                                 </Badge>
                                             </div>
-                                            <p class="text-gray-700 dark:text-gray-300 mb-3">{{ question.question_text }}</p>
+                                            <p class="mb-3 text-gray-700 dark:text-gray-300">{{ question.question_text }}</p>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Question Details -->
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                        <div class="bg-white dark:bg-gray-700 p-3 rounded border">
+                                    <div class="grid grid-cols-1 gap-4 text-sm md:grid-cols-3">
+                                        <div class="rounded border bg-white p-3 dark:bg-gray-700">
                                             <span class="font-medium text-gray-500">Bobot:</span>
                                             <span class="ml-2 font-semibold">{{ question.weight }}</span>
                                         </div>
-                                        <div class="bg-white dark:bg-gray-700 p-3 rounded border">
+                                        <div class="rounded border bg-white p-3 dark:bg-gray-700">
                                             <span class="font-medium text-gray-500">Skor Maksimal:</span>
                                             <span class="ml-2 font-semibold">{{ question.max_score }}</span>
                                         </div>
-                                        <div class="bg-white dark:bg-gray-700 p-3 rounded border">
+                                        <div class="rounded border bg-white p-3 dark:bg-gray-700">
                                             <span class="font-medium text-gray-500">Skor Minimal:</span>
                                             <span class="ml-2 font-semibold">{{ question.min_score }}</span>
                                         </div>
@@ -138,19 +121,22 @@ const breadcrumbs: BreadcrumbItem[] = [
 
                                     <!-- Question Options -->
                                     <div v-if="question.options && question.options.length > 0" class="mt-4">
-                                        <h5 class="font-medium text-gray-700 dark:text-gray-300 mb-3">Pilihan Jawaban:</h5>
+                                        <h5 class="mb-3 font-medium text-gray-700 dark:text-gray-300">Pilihan Jawaban:</h5>
                                         <div class="grid gap-2">
-                                            <div v-for="(option, optionIndex) in question.options" :key="option.id" 
-                                                 class="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded border">
+                                            <div
+                                                v-for="(option, optionIndex) in question.options"
+                                                :key="option.id"
+                                                class="flex items-center justify-between rounded border bg-white p-3 dark:bg-gray-700"
+                                            >
                                                 <div class="flex items-center">
-                                                    <span class="w-6 h-6 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full flex items-center justify-center text-xs font-medium mr-3">
+                                                    <span
+                                                        class="mr-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                                    >
                                                         {{ String.fromCharCode(65 + optionIndex) }}
                                                     </span>
                                                     <span>{{ option.option_text }}</span>
                                                 </div>
-                                                <Badge variant="outline" class="ml-2">
-                                                    {{ option.score }} poin
-                                                </Badge>
+                                                <Badge variant="outline" class="ml-2"> {{ option.score }} poin </Badge>
                                             </div>
                                         </div>
                                     </div>
@@ -159,10 +145,10 @@ const breadcrumbs: BreadcrumbItem[] = [
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <div class="flex justify-between w-full">
+                        <div class="flex w-full justify-between">
                             <Link :href="route('aspects.index')">
                                 <Button variant="outline">
-                                    <ArrowLeft class="w-4 h-4 mr-2" />
+                                    <ArrowLeft class="mr-2 h-4 w-4" />
                                     Kembali
                                 </Button>
                             </Link>

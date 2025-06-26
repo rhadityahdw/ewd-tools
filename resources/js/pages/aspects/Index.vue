@@ -8,35 +8,11 @@ import { BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { Edit, Eye, Plus, Trash2 } from 'lucide-vue-next';
 
-interface QuestionOption {
-    id: number;
-    option_text: string;
-    score: number;
-}
+const props = defineProps({
+    aspects: Object,
+});
 
-interface Question {
-    id: number;
-    question_text: string;
-    weight: number;
-    max_score: number;
-    min_score: number;
-    is_mandatory: boolean;
-    options: QuestionOption[];
-}
-
-interface AspectData {
-    id: number;
-    name: string;
-    code: string;
-    description: string;
-    version: number;
-    questions_count: number;
-    questions: Question[];
-}
-
-const props = defineProps<{
-    aspects: AspectData[];
-}>();
+const aspects = props.aspects?.data;
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -55,7 +31,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="py-6 md:py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between">
                         <CardTitle class="text-xl font-bold md:text-2xl"> Daftar Aspek </CardTitle>
@@ -87,7 +63,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <TableCell>
                                         <Badge variant="outline">{{ aspect.code }}</Badge>
                                     </TableCell>
-                                    <TableCell>v{{ aspect.version }}</TableCell>
+                                    <TableCell>v{{ aspect.version_number }}</TableCell>
                                     <TableCell>{{ aspect.questions_count }}</TableCell>
                                     <TableCell class="max-w-xs truncate">{{ aspect.description || 'Tidak ada deskripsi' }}</TableCell>
                                     <TableCell class="flex justify-end space-x-3 text-right">
